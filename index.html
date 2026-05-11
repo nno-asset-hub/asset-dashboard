@@ -1,0 +1,4313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자산관리 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --bg: #FAFBFC;
+    --bg-card: #FFFFFF;
+    --bg-subtle: #F4F6F8;
+    --bg-hover: #F0F3F6;
+    --border: #E8ECF0;
+    --border-strong: #D5DCE3;
+    --text: #1A1F2E;
+    --text-secondary: #4A5568;
+    --text-dim: #7A8694;
+    --text-muted: #A0AAB8;
+    --accent: #3B7DD8;
+    --accent-bright: #5B9BE8;
+    --accent-soft: #E8F0FB;
+    --accent-deep: #2C5FA8;
+    --profit: #2563EB;
+    --profit-bg: #EBF2FE;
+    --loss: #DC4444;
+    --loss-bg: #FCEBEB;
+    --warm: #E8A547;
+    --warning: #E8A547;
+    --shadow-sm: 0 1px 2px rgba(15, 25, 45, 0.04);
+    --shadow-md: 0 2px 8px rgba(15, 25, 45, 0.06), 0 1px 2px rgba(15, 25, 45, 0.04);
+    --shadow-lg: 0 8px 24px rgba(15, 25, 45, 0.08), 0 2px 6px rgba(15, 25, 45, 0.04);
+    --shadow-glow: 0 0 0 1px rgba(59, 125, 216, 0.1), 0 8px 24px rgba(59, 125, 216, 0.08);
+  }
+
+  /* === 다크모드 === */
+  [data-theme="dark"] {
+    --bg: #0F1419;
+    --bg-card: #1A1F26;
+    --bg-subtle: #232830;
+    --bg-hover: #2A3038;
+    --border: #2A3038;
+    --border-strong: #3A4048;
+    --text: #E8ECF0;
+    --text-secondary: #C0C8D0;
+    --text-dim: #8A95A0;
+    --text-muted: #6A7480;
+    --accent: #5B9BE8;
+    --accent-bright: #7AB0F0;
+    --accent-soft: rgba(91, 155, 232, 0.1);
+    --accent-deep: #3B7DD8;
+    --profit: #5B9BE8;
+    --profit-bg: rgba(91, 155, 232, 0.12);
+    --loss: #F97373;
+    --loss-bg: rgba(249, 115, 115, 0.12);
+    --warm: #F0B870;
+    --warning: #F0B870;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 0 1px rgba(91, 155, 232, 0.2), 0 8px 24px rgba(91, 155, 232, 0.15);
+  }
+
+  /* 다크모드: 추가 컨테이너 스타일 */
+  [data-theme="dark"] body {
+    background-image: radial-gradient(ellipse 1200px 600px at 0% 0%, rgba(91, 155, 232, 0.06), transparent 60%),
+                      radial-gradient(ellipse 800px 600px at 100% 100%, rgba(232, 165, 71, 0.04), transparent 60%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(ellipse 1200px 600px at 0% 0%, rgba(91, 155, 232, 0.06), transparent 60%),
+      radial-gradient(ellipse 800px 600px at 100% 100%, rgba(232, 165, 71, 0.04), transparent 60%);
+    letter-spacing: -0.01em;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 36px; letter-spacing: -0.03em;
+    line-height: 1.1; margin-bottom: 8px; color: var(--text);
+  }
+
+  .header-left h1 span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; font-weight: 700;
+  }
+
+  .header-left .subtitle {
+    color: var(--text-dim); font-size: 13px; font-weight: 500;
+  }
+
+  .header-right {
+    text-align: right; display: flex; flex-direction: column;
+    gap: 6px; align-items: flex-end;
+  }
+
+  .live-indicator {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); border: 1px solid rgba(59, 125, 216, 0.2);
+    padding: 5px 12px; border-radius: 100px;
+    font-size: 11px; font-weight: 600; color: var(--accent-deep);
+  }
+
+  .live-indicator.error { color: var(--loss); border-color: rgba(220, 68, 68, 0.2); background: var(--loss-bg); }
+  .live-indicator.loading { color: #B07A1F; border-color: rgba(232, 165, 71, 0.3); background: #FDF5E6; }
+
+  .live-dot {
+    width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+  }
+
+  .live-indicator.error .live-dot { background: var(--loss); }
+  .live-indicator.loading .live-dot { background: var(--warm); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+
+  .last-updated {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px; color: var(--text-muted); font-weight: 500;
+  }
+
+  .refresh-btn {
+    background: var(--bg-card); border: 1px solid var(--border-strong);
+    color: var(--text-secondary); padding: 7px 14px; border-radius: 8px;
+    font-size: 12px; font-family: 'Pretendard Variable', sans-serif;
+    font-weight: 500; cursor: pointer; transition: all 0.15s;
+    margin-top: 4px; box-shadow: var(--shadow-sm);
+  }
+
+  .refresh-btn:hover {
+    background: var(--bg-hover); color: var(--text);
+    border-color: var(--accent); transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text);
+    transition: all 0.2s;
+    height: 36px;
+    width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theme-toggle:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* 다크모드 시 hero-card.main 배경 조정 */
+  [data-theme="dark"] .hero-card.main {
+    background: linear-gradient(135deg, #1A1F26 0%, #232830 100%);
+    border: 1px solid rgba(91, 155, 232, 0.2);
+  }
+
+  /* 다크모드 시 인사이트 카드 배경 조정 */
+  [data-theme="dark"] .insights-card {
+    background: linear-gradient(135deg, rgba(91, 155, 232, 0.06), rgba(91, 192, 190, 0.04));
+  }
+
+  .hero-section {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 16px; margin-bottom: 24px;
+  }
+
+  .hero-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; position: relative;
+    overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.2s;
+  }
+
+  .hero-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+  .hero-card.main {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFD 100%);
+    border: 1px solid rgba(59, 125, 216, 0.15);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .hero-card.main::before {
+    content: ''; position: absolute; top: -30%; right: -10%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(91, 155, 232, 0.1), transparent 60%);
+    pointer-events: none;
+  }
+
+  .card-label {
+    font-size: 12px; color: var(--text-dim);
+    margin-bottom: 12px; font-weight: 500;
+  }
+
+  .card-value {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 36px;
+    letter-spacing: -0.03em; line-height: 1.1;
+    margin-bottom: 8px; color: var(--text);
+  }
+
+  .hero-card.main .card-value {
+    font-size: 52px; font-weight: 700;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .card-value-unit {
+    font-size: 0.4em; color: var(--text-dim); margin-left: 4px;
+    -webkit-text-fill-color: var(--text-dim);
+    font-family: 'Pretendard Variable', sans-serif; font-weight: 500;
+  }
+
+  .card-meta {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: 12px; color: var(--text-dim);
+    margin-top: 8px; font-weight: 500;
+  }
+
+  .card-meta-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .card-meta-grid .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .card-meta-grid .meta-label {
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .card-delta {
+    font-family: 'Geist Mono', monospace; font-size: 12px;
+    font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .delta-up { color: var(--profit); background: var(--profit-bg); }
+  .delta-down { color: var(--loss); background: var(--loss-bg); }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin: 44px 0 18px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header h2 {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 22px;
+    letter-spacing: -0.02em; color: var(--text);
+  }
+
+  .section-header h2 span { color: var(--accent); font-weight: 700; }
+
+  .section-header .meta {
+    font-size: 12px; color: var(--text-muted);
+    font-weight: 500; margin-left: auto;
+  }
+
+  .trend-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    margin-bottom: 24px; box-shadow: var(--shadow-sm);
+  }
+
+  .chart-container { position: relative; height: 320px; }
+
+  .owner-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+
+  .owner-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    transition: all 0.2s; box-shadow: var(--shadow-sm);
+  }
+
+  .owner-card:hover {
+    border-color: rgba(59, 125, 216, 0.3);
+    transform: translateY(-2px); box-shadow: var(--shadow-md);
+  }
+
+  .owner-name {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 20px;
+    margin-bottom: 4px; letter-spacing: -0.02em;
+  }
+
+  .owner-share {
+    font-size: 11px; color: var(--text-dim);
+    font-weight: 500; margin-bottom: 16px;
+  }
+
+  .owner-amount {
+    font-family: 'Geist Mono', monospace;
+    font-size: 26px; font-weight: 600;
+    margin-bottom: 12px; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .owner-bar {
+    height: 6px; background: var(--bg-subtle);
+    border-radius: 3px; overflow: hidden; margin-bottom: 16px;
+  }
+
+  .owner-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .owner-stats {
+    display: flex; justify-content: space-between;
+    font-size: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .owner-stats > div { display: flex; flex-direction: column; gap: 4px; }
+
+  .owner-stats .stat-label {
+    color: var(--text-dim); font-size: 10px;
+    font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .owner-stats .stat-value {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 600; font-size: 13px;
+  }
+
+  /* === 소유자별 시점 추이 차트 === */
+  #owner-charts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .owner-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .owner-chart-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .owner-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .owner-chart-name {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+
+  .owner-chart-pct {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    line-height: 1.1;
+  }
+
+  .owner-chart-pct .pct-tiny-label {
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.8;
+    letter-spacing: 0.05em;
+  }
+
+  .owner-chart-pct .pct-value {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .owner-chart-share {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .owner-chart-canvas {
+    height: 220px;
+    position: relative;
+  }
+
+  .owner-chart-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .owner-chart-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: var(--bg-subtle);
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .owner-chart-stats .label {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .owner-chart-stats .value {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .owner-chart-stats .value.sub {
+    font-weight: 600;
+    font-size: 11px;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 1100px) {
+    #owner-charts { grid-template-columns: 1fr; }
+  }
+
+  /* === 그룹 헤더 === */
+  .group-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 56px 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .group-header:first-of-type {
+    margin-top: 8px;
+  }
+
+  .group-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .group-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .group-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-left: auto;
+  }
+
+  @media (max-width: 768px) {
+    .group-header {
+      margin: 40px 0 16px 0;
+    }
+    .group-title {
+      font-size: 18px;
+    }
+    .group-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  /* === 인사이트 카드 === */
+  .insights-card {
+    background: linear-gradient(135deg, rgba(59, 125, 216, 0.08), rgba(91, 192, 190, 0.06));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .insights-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .insights-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .insight-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .insight-icon {
+    font-size: 18px;
+    line-height: 1.2;
+    flex-shrink: 0;
+  }
+
+  .insight-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  .insight-highlight {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  .insight-highlight.warning {
+    color: var(--warning);
+  }
+
+  .insight-highlight.danger {
+    color: var(--loss);
+  }
+
+  /* === TOP 자산 카드 === */
+  .top-assets-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 8px 0;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .top-asset-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .top-asset-row:last-child {
+    border-bottom: none;
+  }
+
+  .top-asset-row:hover {
+    background: var(--bg-subtle);
+  }
+
+  .top-asset-rank {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .top-asset-row:nth-child(1) .top-asset-rank {
+    color: #D4A017;
+  }
+
+  .top-asset-row:nth-child(2) .top-asset-rank {
+    color: #A0A0A0;
+  }
+
+  .top-asset-row:nth-child(3) .top-asset-rank {
+    color: #B8702F;
+  }
+
+  .top-asset-info {
+    min-width: 0;
+  }
+
+  .top-asset-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top-asset-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .top-asset-meta .meta-cat {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .top-asset-amount {
+    text-align: right;
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .top-asset-amount-pct {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .top-asset-bar {
+    width: 80px;
+    height: 4px;
+    background: var(--bg-subtle);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .top-asset-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #5BC0BE);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  @media (max-width: 600px) {
+    .top-asset-row {
+      grid-template-columns: 24px 1fr auto;
+      gap: 10px;
+      padding: 12px 16px;
+    }
+    .top-asset-bar {
+      display: none;
+    }
+    .top-asset-name {
+      font-size: 13px;
+    }
+    .top-asset-amount {
+      font-size: 13px;
+    }
+  }
+
+  /* === 검색/필터 카드 === */
+  .search-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .search-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 14px;
+    background: var(--bg-subtle);
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg-card);
+  }
+
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filter-btn {
+    padding: 6px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  .filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .search-results {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .search-result-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .search-result-info .name {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .search-result-info .meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .search-result-amount {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: right;
+  }
+
+  .search-result-pct {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 4px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .search-result-pct.up {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--profit);
+  }
+
+  .search-result-pct.down {
+    background: rgba(220, 68, 68, 0.1);
+    color: var(--loss);
+  }
+
+  .search-result-pct.neutral {
+    background: var(--bg-subtle);
+    color: var(--text-dim);
+  }
+
+  .search-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .search-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  /* === 시뮬레이션 카드 === */
+  .simulation-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .simulation-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .sim-stat {
+    text-align: center;
+    padding: 10px;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+  }
+
+  .sim-stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .sim-stat-value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .sim-stat-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* === 소유자 × 대분류 매트릭스 === */
+  .matrix-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .matrix-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .matrix-tab {
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+
+  .matrix-tab:hover {
+    color: var(--text);
+  }
+
+  .matrix-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .matrix-section {
+    display: none;
+    overflow-x: auto;
+  }
+
+  .matrix-section.active {
+    display: block;
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .matrix-table th {
+    padding: 10px 12px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-strong);
+    background: var(--bg-subtle);
+    white-space: nowrap;
+  }
+
+  .matrix-table th:first-child {
+    text-align: left;
+  }
+
+  .matrix-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .matrix-table td:first-child {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .matrix-table td.amount {
+    text-align: right;
+    font-family: 'Geist Mono', monospace;
+    font-weight: 600;
+  }
+
+  .matrix-table td.amount.zero {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .matrix-table td.pct {
+    text-align: right;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 500;
+    padding-top: 2px;
+  }
+
+  .matrix-table .cell-amount {
+    display: block;
+    line-height: 1.2;
+  }
+
+  .matrix-table .cell-pct {
+    display: block;
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .matrix-table tbody tr:hover {
+    background: var(--bg-subtle);
+  }
+
+  .matrix-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .matrix-table tfoot td {
+    background: var(--bg-subtle);
+    font-weight: 700;
+    border-top: 2px solid var(--border-strong);
+    border-bottom: none;
+    padding: 12px;
+  }
+
+  .matrix-table tfoot td.amount {
+    color: var(--accent);
+  }
+
+  /* 셀 강도별 배경 색상 (heatmap) */
+  .matrix-table td.cell-strong {
+    background: rgba(59, 125, 216, 0.08);
+  }
+
+  .matrix-table td.cell-medium {
+    background: rgba(59, 125, 216, 0.04);
+  }
+
+  /* 모바일 */
+  @media (max-width: 768px) {
+    .matrix-table {
+      font-size: 11px;
+    }
+    .matrix-table th, .matrix-table td {
+      padding: 8px 8px;
+    }
+    .matrix-table .cell-pct {
+      font-size: 9px;
+    }
+  }
+
+  /* === 카테고리/계정 카드 그리드 === */
+  .summary-card {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFD 100%);
+    border: 1px solid rgba(59, 125, 216, 0.15);
+    border-radius: 14px;
+    padding: 18px 24px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .summary-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .summary-card .label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .summary-card .value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .summary-card .value.profit { color: var(--profit); }
+  .summary-card .value.loss { color: var(--loss); }
+
+  /* === 시점별 수익률 흐름 === */
+  .period-pcts-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .period-pcts-card:empty {
+    display: none;
+  }
+
+  .period-pcts-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .period-pcts-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .period-pct-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: var(--bg-subtle);
+    padding: 10px 14px;
+    border-radius: 10px;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  .period-pct-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .period-pct-amount {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .period-pct-tag {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 1px;
+  }
+
+  .period-pct-tag.start { color: var(--accent); }
+
+  .period-pct-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  .period-pct-arrow .arrow-icon {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .period-pct-arrow .arrow-pct {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .period-pct-arrow.profit .arrow-icon,
+  .period-pct-arrow.profit .arrow-pct { color: var(--profit); }
+
+  .period-pct-arrow.loss .arrow-icon,
+  .period-pct-arrow.loss .arrow-pct { color: var(--loss); }
+
+  .period-pct-arrow.neutral .arrow-icon,
+  .period-pct-arrow.neutral .arrow-pct { color: var(--text-muted); }
+
+  @media (max-width: 768px) {
+    .period-pcts-flow {
+      gap: 6px;
+    }
+    .period-pct-node {
+      min-width: 80px;
+      padding: 8px 10px;
+    }
+    .period-pct-amount { font-size: 13px; }
+    .period-pct-arrow .arrow-icon { font-size: 16px; }
+    .period-pct-arrow .arrow-pct { font-size: 11px; }
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .cat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .cat-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(59, 125, 216, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .cat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+    gap: 12px;
+  }
+
+  .cat-card-name {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .cat-card-share {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    background: var(--bg-subtle);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .cat-card-amount {
+    font-family: 'Geist Mono', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .cat-card-canvas {
+    height: 180px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .cat-card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .cat-card-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: var(--bg-subtle);
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .cat-card-stats .label {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .cat-card-stats .value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .cat-card-stats .value.sub {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+
+  .cat-card-stats .value.profit { color: var(--profit); }
+  .cat-card-stats .value.loss { color: var(--loss); }
+  .cat-card-stats .value.neutral { color: var(--text-dim); }
+
+  /* 카드 내부 시점별 수익률 */
+  .cat-card-period-pcts {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .period-pcts-mini-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .period-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .period-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--bg-subtle);
+    padding: 6px 8px;
+    border-radius: 6px;
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
+    text-align: center;
+  }
+
+  .period-chip .chip-period {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .period-chip .chip-pct {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .period-chip.profit { background: var(--profit-bg); }
+  .period-chip.profit .chip-pct { color: var(--profit); }
+
+  .period-chip.loss { background: var(--loss-bg); }
+  .period-chip.loss .chip-pct { color: var(--loss); }
+
+  .period-chip.neutral .chip-pct { color: var(--text-muted); }
+
+  /* 클릭 가능 카드 */
+  .cat-card.clickable {
+    cursor: pointer;
+    position: relative;
+  }
+  .cat-card.clickable::after {
+    content: '상세보기 →';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    opacity: 0;
+    background: var(--accent-soft);
+    padding: 3px 8px;
+    border-radius: 100px;
+    transition: all 0.2s;
+    letter-spacing: 0;
+  }
+  .cat-card.clickable:hover {
+    border-color: rgba(59, 125, 216, 0.4);
+  }
+  .cat-card.clickable:hover::after {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  /* === 모달 === */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 25, 45, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: modalFade 0.2s ease;
+  }
+
+  @keyframes modalFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: var(--bg-card);
+    border-radius: 20px;
+    max-width: 880px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(15, 25, 45, 0.25);
+    animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes modalSlide {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-eyebrow {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .modal-title {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .modal-subtitle {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .modal-close {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  .modal-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 20px 32px;
+    background: linear-gradient(135deg, #F8FAFD 0%, #FFFFFF 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .modal-summary .label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .modal-summary .value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .modal-summary .value.profit { color: var(--profit); }
+  .modal-summary .value.loss { color: var(--loss); }
+
+  .modal-section {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-section:last-child { border-bottom: none; }
+
+  .modal-section-title {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .modal-chart-wrap {
+    height: 240px;
+    position: relative;
+  }
+
+  .modal-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .modal-table thead {
+    background: var(--bg-subtle);
+  }
+
+  .modal-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .modal-table th.right { text-align: right; }
+
+  .modal-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .modal-table td.right {
+    text-align: right;
+    font-family: 'Geist Mono', monospace;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .modal-table td.profit { color: var(--profit); font-weight: 700; }
+  .modal-table td.loss { color: var(--loss); font-weight: 700; }
+  .modal-table td.neutral { color: var(--text-muted); }
+
+  .modal-table tbody tr:last-child td { border-bottom: none; }
+  .modal-table tbody tr:hover { background: var(--bg-subtle); }
+
+  .modal-table tfoot td {
+    background: var(--bg-subtle);
+    font-weight: 700;
+    color: var(--text);
+    border-top: 2px solid var(--border-strong);
+    border-bottom: none;
+  }
+
+  .item-tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .modal-content { max-height: 95vh; border-radius: 16px; }
+    .modal-header { padding: 20px 22px 16px; }
+    .modal-title { font-size: 22px; }
+    .modal-summary { grid-template-columns: repeat(2, 1fr); padding: 16px 22px; }
+    .modal-section { padding: 18px 22px; }
+    .modal-table { font-size: 11px; }
+    .modal-table th, .modal-table td { padding: 8px 8px; }
+  }
+
+  @media (max-width: 1100px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .summary-card { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .cat-grid { grid-template-columns: 1fr; }
+    .summary-card { grid-template-columns: 1fr; gap: 10px; padding: 16px; }
+    .summary-card .value { font-size: 16px; }
+  }
+
+  .category-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-bottom: 24px;
+  }
+
+  .category-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .category-card h3 {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 16px;
+    margin-bottom: 20px; letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .category-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .category-item {
+    display: grid; grid-template-columns: 100px 1fr auto;
+    gap: 12px; align-items: center; font-size: 13px;
+  }
+
+  .category-name { color: var(--text-secondary); font-weight: 500; }
+
+  .category-bar {
+    height: 8px; background: var(--bg-subtle);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+
+  .category-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .category-amount {
+    font-family: 'Geist Mono', monospace; font-size: 12px;
+    color: var(--text); font-weight: 600;
+    text-align: right; min-width: 90px;
+  }
+
+  .category-pct {
+    font-family: 'Geist Mono', monospace; font-size: 11px;
+    color: var(--text-dim); margin-left: 8px; font-weight: 500;
+  }
+
+  .goal-section {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFD 100%);
+    border: 1px solid rgba(59, 125, 216, 0.15);
+    border-radius: 16px; padding: 32px;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .goal-section::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .goal-header {
+    display: flex; justify-content: space-between;
+    align-items: baseline; margin-bottom: 24px;
+  }
+
+  .goal-title {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 20px; letter-spacing: -0.02em;
+  }
+
+  .goal-pct {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 700; font-size: 48px;
+    color: var(--accent); letter-spacing: -0.03em;
+  }
+
+  .goal-bar {
+    height: 12px; background: var(--bg-subtle);
+    border-radius: 6px; overflow: hidden;
+    margin-bottom: 16px; position: relative;
+  }
+
+  .goal-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-bright) 100%);
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(59, 125, 216, 0.3);
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .goal-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; font-size: 13px;
+  }
+
+  .goal-stat { display: flex; flex-direction: column; gap: 4px; }
+
+  .goal-stat .label {
+    color: var(--text-dim); font-size: 11px;
+    font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .goal-stat .value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 16px; font-weight: 600; color: var(--text);
+  }
+
+  .config-panel {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    margin-bottom: 24px; box-shadow: var(--shadow-sm);
+  }
+
+  .config-panel h3 {
+    font-size: 13px; color: var(--text-secondary);
+    font-weight: 600; margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .config-row { display: flex; gap: 12px; align-items: center; }
+
+  .config-input {
+    flex: 1; background: var(--bg-subtle);
+    border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; border-radius: 8px;
+    font-family: 'Geist Mono', monospace; font-size: 12px;
+    transition: all 0.15s;
+  }
+
+  .config-input:focus {
+    outline: none; border-color: var(--accent);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .config-btn {
+    background: var(--accent); color: white; border: none;
+    padding: 10px 20px; border-radius: 8px;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .config-btn:hover {
+    background: var(--accent-deep);
+    transform: translateY(-1px); box-shadow: var(--shadow-md);
+  }
+
+  .help-text {
+    font-size: 11px; color: var(--text-dim);
+    margin-top: 8px; line-height: 1.7; font-weight: 500;
+  }
+
+  .help-text a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .help-text a:hover { text-decoration: underline; }
+
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-dim);
+  }
+
+  .empty-state h2 {
+    font-family: 'Geist', 'Pretendard Variable', sans-serif;
+    font-weight: 600; font-size: 26px;
+    color: var(--text); margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .empty-state p {
+    max-width: 600px; margin: 0 auto 12px;
+    line-height: 1.7; font-size: 14px; font-weight: 500;
+  }
+
+  @media (max-width: 1100px) {
+    .hero-section { grid-template-columns: 1fr 1fr; }
+    .hero-card.main { grid-column: 1 / -1; }
+    .owner-grid { grid-template-columns: 1fr; }
+    .category-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 20px 16px 60px; }
+    header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .header-right { align-items: flex-start; text-align: left; }
+    .hero-section { grid-template-columns: 1fr; }
+    .hero-card.main .card-value { font-size: 38px; }
+    .card-value { font-size: 28px; }
+    .goal-pct { font-size: 36px; }
+    .goal-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-left">
+      <h1>자산 <span>대시보드</span></h1>
+      <div class="subtitle">실시간 구글시트 동기화 · 가족 자산 관리</div>
+    </div>
+    <div class="header-right">
+      <div id="status-indicator" class="live-indicator loading">
+        <span class="live-dot"></span>
+        <span id="status-text">데이터 로딩 중</span>
+      </div>
+      <div id="last-updated" class="last-updated">--</div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="테마 전환" aria-label="테마 전환">
+        <span id="theme-icon">🌙</span>
+      </button>
+      <button class="refresh-btn" onclick="loadData()">↻ 새로고침</button>
+    </div>
+  </header>
+
+  <div id="config-panel" class="config-panel" style="display:none">
+    <h3>⚙️ 구글시트 CSV URL 설정</h3>
+    <div class="config-row">
+      <input id="csv-url-input" class="config-input" type="text"
+             placeholder="구글시트 CSV 게시 URL (https://docs.google.com/spreadsheets/d/e/.../pub?output=csv)">
+      <button class="config-btn" onclick="saveUrl()">저장 및 로드</button>
+    </div>
+    <div class="help-text">
+      📌 <strong>구글시트 게시 방법</strong>: 구글시트 → 파일 → 공유 → 웹에 게시 → "자산입력" 시트 선택 → 형식: <strong>쉼표로 구분된 값(.csv)</strong> → 게시 → URL 복사 → 위에 붙여넣기
+    </div>
+  </div>
+
+  <div id="main-content" style="display:none">
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 1: 핵심 지표 (KPI + 인사이트)     -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">📊</span>
+      <h2 class="group-title">핵심 지표</h2>
+      <span class="group-subtitle">한눈에 보는 현황</span>
+    </div>
+
+    <section class="hero-section">
+      <div class="hero-card main">
+        <div class="card-label">최신 시점 총자산</div>
+        <div id="kpi-latest" class="card-value">-<span class="card-value-unit">원</span></div>
+        <div class="card-meta-grid">
+          <div class="meta-row">
+            <span class="meta-label"><span id="kpi-latest-date">-</span> · 전 시점 대비</span>
+            <span id="kpi-latest-delta" class="card-delta delta-up">-</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">최초 시점 대비</span>
+            <span id="kpi-latest-cum-delta" class="card-delta delta-up">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="card-label">누적 수익</div>
+        <div id="kpi-cumulative" class="card-value">-<span class="card-value-unit">원</span></div>
+        <div class="card-meta-grid">
+          <div class="meta-row">
+            <span class="meta-label">시작 시점 대비</span>
+            <span id="kpi-cumulative-pct" class="card-delta delta-up">-</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">직전 시점 대비</span>
+            <span id="kpi-mom-delta" class="card-delta delta-up">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="card-label">연환산 수익률</div>
+        <div id="kpi-annual" class="card-value">-<span class="card-value-unit">%</span></div>
+        <div class="card-meta-grid">
+          <div class="meta-row">
+            <span class="meta-label">관측 기간</span>
+            <span id="kpi-annual-days" style="color: var(--text); font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600;">-</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">변동성</span>
+            <span id="kpi-volatility" style="color: var(--text-dim); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 500;">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="card-label">목표 50억 진척률</div>
+        <div id="kpi-goal" class="card-value">-<span class="card-value-unit">%</span></div>
+        <div class="card-meta-grid">
+          <div class="meta-row">
+            <span class="meta-label">남은 금액</span>
+            <span id="kpi-goal-remaining" style="color: var(--text); font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600;">-</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">도달 예상</span>
+            <span id="kpi-goal-eta" style="color: var(--text-dim); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 500;">-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 자동 인사이트 카드 -->
+    <div id="insights-card" class="insights-card"></div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 2: 자산 상세 (TOP 10 + 검색)     -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">💎</span>
+      <h2 class="group-title">자산 상세</h2>
+      <span class="group-subtitle">개별 자산 탐색</span>
+    </div>
+
+    <div class="section-header">
+      <h2><span>자산</span> TOP 10</h2>
+      <span class="meta">최신 시점 기준 비중 순</span>
+    </div>
+    <div id="top-assets" class="top-assets-card"></div>
+
+    <div class="section-header">
+      <h2><span>자산</span> 검색 / 필터</h2>
+      <span class="meta">소유자 · 대분류로 필터링</span>
+    </div>
+    <div class="search-card">
+      <div class="search-controls">
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 자산명, 계정 검색 (예: 삼성전자)">
+        <div class="filter-group" id="owner-filter">
+          <button class="filter-btn active" data-owner="all">전체</button>
+        </div>
+        <div class="filter-group" id="category-filter">
+          <button class="filter-btn active" data-category="all">전체</button>
+        </div>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 3: 시간별 추이                    -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">📈</span>
+      <h2 class="group-title">시간별 추이</h2>
+      <span class="group-subtitle">자산 성장 흐름</span>
+    </div>
+
+    <div class="section-header">
+      <h2><span>시점별</span> 추이</h2>
+      <span class="meta">전체 자산 변화</span>
+    </div>
+    <div class="trend-card">
+      <div class="chart-container"><canvas id="trend-chart"></canvas></div>
+    </div>
+
+    <div class="section-header">
+      <h2><span>50억</span> 목표 시뮬레이션</h2>
+      <span class="meta">현재 페이스 + 시나리오별 예측</span>
+    </div>
+    <div class="simulation-card">
+      <div class="chart-container"><canvas id="simulation-chart"></canvas></div>
+      <div id="simulation-stats" class="simulation-stats"></div>
+    </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 4: 소유자별 분석                  -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">👥</span>
+      <h2 class="group-title">소유자별 분석</h2>
+      <span class="group-subtitle">가족 구성원별 자산 현황</span>
+    </div>
+
+    <div class="section-header">
+      <h2><span>소유자별</span> 시점 추이</h2>
+      <span class="meta">3인 가족 자산 변화</span>
+    </div>
+    <div id="owner-charts"></div>
+
+    <div class="section-header">
+      <h2><span>소유자 × 대분류</span> 매트릭스</h2>
+      <span class="meta">소유자별 자산 구성 비교</span>
+    </div>
+    <div class="matrix-container">
+      <div class="matrix-tabs">
+        <button class="matrix-tab active" data-target="cat">대분류별</button>
+        <button class="matrix-tab" data-target="acc">계정별</button>
+      </div>
+      <div id="matrix-cat" class="matrix-section active"></div>
+      <div id="matrix-acc" class="matrix-section"></div>
+    </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 5: 자산군별 분석                  -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">📁</span>
+      <h2 class="group-title">자산군별 분석</h2>
+      <span class="group-subtitle">대분류 · 계정별 변화</span>
+    </div>
+
+    <div class="section-header">
+      <h2><span>대분류별</span> 시점 추이</h2>
+      <span class="meta">자산 종류별 변화 · 평균 수익률</span>
+    </div>
+    <div id="category-summary-card" class="summary-card"></div>
+    <div id="category-period-pcts" class="period-pcts-card"></div>
+    <div id="category-cards" class="cat-grid"></div>
+
+    <div class="section-header">
+      <h2><span>계정별</span> 시점 추이</h2>
+      <span class="meta">금융기관별 변화 · 평균 수익률</span>
+    </div>
+    <div id="account-summary-card" class="summary-card"></div>
+    <div id="account-period-pcts" class="period-pcts-card"></div>
+    <div id="account-cards" class="cat-grid"></div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <!-- 그룹 6: 목표                          -->
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="group-header">
+      <span class="group-icon">🎯</span>
+      <h2 class="group-title">목표</h2>
+      <span class="group-subtitle">50억 달성까지</span>
+    </div>
+
+    <div class="section-header">
+      <h2><span>목표</span> 진척도</h2>
+      <span class="meta">5,000,000,000원</span>
+    </div>
+    <div class="goal-section">
+      <div class="goal-header">
+        <div class="goal-title">50억 자산 달성까지</div>
+        <div id="goal-pct-display" class="goal-pct">--<span style="font-size: 0.5em; color: var(--text-dim);">%</span></div>
+      </div>
+      <div class="goal-bar">
+        <div id="goal-bar-fill" class="goal-bar-fill" style="width: 0%"></div>
+      </div>
+      <div class="goal-stats">
+        <div class="goal-stat">
+          <span class="label">목표</span>
+          <span class="value">5,000,000,000원</span>
+        </div>
+        <div class="goal-stat">
+          <span class="label">현재</span>
+          <span id="goal-current" class="value">-</span>
+        </div>
+        <div class="goal-stat">
+          <span class="label">남은 금액</span>
+          <span id="goal-remaining" class="value">-</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 상세보기 모달 -->
+  <div id="detail-modal" class="modal-overlay" style="display:none" onclick="closeDetail(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div class="modal-eyebrow" id="modal-eyebrow">대분류 상세</div>
+          <h2 class="modal-title" id="modal-title">-</h2>
+          <div class="modal-subtitle" id="modal-subtitle">-</div>
+        </div>
+        <button class="modal-close" onclick="closeDetail()" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="modal-summary" id="modal-summary"></div>
+
+      <div class="modal-section">
+        <h3 class="modal-section-title">📈 시점별 추이</h3>
+        <div class="modal-chart-wrap"><canvas id="modal-chart"></canvas></div>
+      </div>
+
+      <div class="modal-section">
+        <h3 class="modal-section-title" id="modal-items-title">📋 포함 항목</h3>
+        <div class="modal-table-wrap">
+          <table class="modal-table" id="modal-items-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="empty-state" class="empty-state" style="display:none">
+    <h2>대시보드 미리보기</h2>
+    <p>실제 구글시트 연결 전에 샘플 데이터로 어떤 모습인지 확인해보세요.</p>
+    <p style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+      <button class="config-btn" onclick="loadDemoData()" style="background: var(--accent); padding: 12px 24px;">✨ 샘플 데이터로 미리보기</button>
+      <button class="config-btn" onclick="showConfig()" style="background: var(--bg-card); color: var(--text); border: 1px solid var(--border-strong); padding: 12px 24px;">⚙️ 구글시트 연결</button>
+    </p>
+  </div>
+
+</div>
+
+<script>
+let trendChart = null;
+let csvUrl = localStorage.getItem('csvUrl') || '';
+let currentData = null;  // 상세보기에서 참조하기 위해
+let modalChart = null;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 다크모드 토글
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('theme', theme);
+
+  // 차트가 이미 렌더링되어 있으면 다시 그려서 색상 반영
+  if (currentData) {
+    setTimeout(() => renderDashboard(currentData), 50);
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// 초기 테마 적용 (시스템 환경 따라가거나 저장된 값)
+(function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    applyTheme(saved);
+  } else {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+})();
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (csvUrl) {
+    document.getElementById('csv-url-input').value = csvUrl;
+    loadData();
+  } else {
+    showConfig();
+    showEmptyState();
+  }
+});
+
+function showConfig() {
+  document.getElementById('config-panel').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  // 입력란에 포커스 (선택)
+  setTimeout(() => {
+    const input = document.getElementById('csv-url-input');
+    if (input) input.focus();
+  }, 100);
+}
+
+function showEmptyState() {
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('main-content').style.display = 'none';
+  setStatus('대기 중', 'loading');
+}
+
+function saveUrl() {
+  const input = document.getElementById('csv-url-input').value.trim();
+  if (!input) return alert('CSV URL을 입력해주세요');
+  csvUrl = input;
+  localStorage.setItem('csvUrl', input);
+  loadData();
+}
+
+function setStatus(text, type) {
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-indicator').className = 'live-indicator ' + type;
+}
+
+async function loadData() {
+  if (!csvUrl) { showConfig(); showEmptyState(); return; }
+  setStatus('동기화 중', 'loading');
+
+  try {
+    const res = await fetch(csvUrl);
+    if (!res.ok) throw new Error('구글시트 응답 오류: ' + res.status);
+    const csv = await res.text();
+    const data = parseCSV(csv);
+    const parsed = parseAssetData(data);
+    if (!parsed) throw new Error('데이터 형식을 인식할 수 없습니다.');
+
+    renderDashboard(parsed);
+    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('config-panel').style.display = 'none';
+
+    const now = new Date();
+    const lastUpdate = now.toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+
+    // 최신 시점 기준 며칠 됐는지
+    let dataAgeText = '';
+    if (data && data.periods && data.periods.length > 0) {
+      const latestDate = data.periods[data.periods.length - 1].label;
+      const match = String(latestDate).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (match) {
+        const dataDate = new Date(+match[1], +match[2]-1, +match[3]);
+        const daysAgo = Math.round((now - dataDate) / (1000*60*60*24));
+        if (daysAgo === 0) dataAgeText = '오늘';
+        else if (daysAgo === 1) dataAgeText = '어제';
+        else dataAgeText = `${daysAgo}일 전`;
+        dataAgeText = `📅 데이터: ${dataAgeText} (${latestDate})`;
+      }
+    }
+    document.getElementById('last-updated').innerHTML =
+      `<div style="font-size:11px;color:var(--text-dim);">동기화: ${lastUpdate}</div>` +
+      (dataAgeText ? `<div style="font-size:11px;color:var(--text);margin-top:2px;font-weight:600;">${dataAgeText}</div>` : '');
+    setStatus('실시간 동기화', 'ok');
+
+  } catch (err) {
+    console.error(err);
+    setStatus('연결 실패', 'error');
+    showConfig();
+    document.getElementById('config-panel').style.display = 'block';
+    if (!document.querySelector('.error-msg')) {
+      const msg = document.createElement('div');
+      msg.className = 'error-msg help-text';
+      msg.style.color = 'var(--loss)';
+      msg.style.marginTop = '8px';
+      msg.textContent = '⚠️ ' + err.message;
+      document.querySelector('.help-text').after(msg);
+    }
+  }
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i+1] === '"') { cell += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else cell += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (c === '\r') {}
+      else cell += c;
+    }
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
+function parseAssetData(rows) {
+  if (rows.length < 3) return null;
+
+  // 양식 자동 감지: 새 양식(v2) vs 구 양식
+  // 새 양식: 2행 1열에 "자산명" 또는 비슷한 헤더
+  // 구 양식: 4행 헤더, 시점 컬럼이 3열씩 묶여 있음
+  const isV2Format = detectV2Format(rows);
+
+  if (isV2Format) {
+    return parseV2Format(rows);
+  } else {
+    return parseV1Format(rows);
+  }
+}
+
+// 양식 자동 감지
+function detectV2Format(rows) {
+  // 새 양식의 특징: 2행에 "자산명"이라는 셀이 존재
+  if (rows.length < 2) return false;
+  const row2 = rows[1] || [];
+  const firstCell = (row2[0] || '').toString().trim();
+  return firstCell === '자산명' || firstCell.includes('자산');
+}
+
+// === 새 양식 v2 파싱 ===
+// 1행: 안내 (무시)
+// 2행: 헤더 [자산명, 소유자, 계정, 대분류, 원금, 시점1날짜, 시점2날짜, ...]
+// 3행~: 데이터 (마지막 데이터 행까지)
+function parseV2Format(rows) {
+  const headerRow = rows[1] || [];
+  const PERIOD_START = 5; // F열 (0-indexed)
+
+  // 시점 컬럼 자동 인식 (F열부터 우측으로 비어있지 않은 셀)
+  const periods = [];
+  for (let c = PERIOD_START; c < headerRow.length; c++) {
+    const label = (headerRow[c] || '').toString().trim().split('\n')[0].trim();
+    if (label) {
+      periods.push({ label, colIdx: c, periodIdx: periods.length });
+    }
+  }
+
+  if (periods.length === 0) return null;
+
+  // 데이터 행 파싱 (3행=인덱스 2부터)
+  const assets = [];
+  for (let r = 2; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row) continue;
+
+    const type = (row[0] || '').toString().trim();      // 자산명
+    const owner = (row[1] || '').toString().trim();     // 소유자
+    const account = (row[2] || '').toString().trim();   // 계정
+    const category = (row[3] || '').toString().trim();  // 대분류
+    const cost = parseNum(row[4]);                       // 원금
+
+    // 시점 금액
+    const values = periods.map(p => parseNum(row[p.colIdx]));
+
+    // 빈 행 스킵: 자산명/소유자 모두 비어있고 모든 금액이 0이면 스킵
+    const allZero = values.every(v => v === 0);
+    if (!type && !owner && !account && allZero) continue;
+
+    assets.push({ owner, account, type, category, cost, values });
+  }
+
+  return buildAssetSummary(periods, assets);
+}
+
+// === 구 양식 v1 파싱 ===
+function parseV1Format(rows) {
+  if (rows.length < 5) return null;
+  const PERIOD_COLS = [6, 7, 10, 13, 16, 19, 22, 25];
+  const headerRow = rows[2] || [];
+
+  const periods = [];
+  PERIOD_COLS.forEach((colIdx, i) => {
+    const label = (headerRow[colIdx] || '').toString().trim().split('\n')[0].trim();
+    if (label) periods.push({ label, colIdx, periodIdx: i });
+  });
+
+  if (periods.length === 0) return null;
+
+  const assets = [];
+  for (let r = 4; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.length < 7) continue;
+
+    const owner = (row[1] || '').toString().trim();
+    const account = (row[2] || '').toString().trim();
+    const type = (row[3] || '').toString().trim();
+    const category = (row[4] || '').toString().trim();
+    const cost = parseNum(row[5]);
+
+    const firstAmount = parseNum(row[PERIOD_COLS[0]]);
+    if (!owner && !account && firstAmount === 0) continue;
+
+    const values = periods.map(p => parseNum(row[p.colIdx]));
+    assets.push({ owner, account, type, category, cost, values });
+  }
+
+  return buildAssetSummary(periods, assets);
+}
+
+// 공통 요약 빌드 (양식 무관)
+function buildAssetSummary(periods, assets) {
+  if (assets.length === 0) return null;
+
+  const periodTotals = periods.map((p, i) =>
+    assets.reduce((sum, a) => sum + a.values[i], 0)
+  );
+
+  // 소유자별 (최신/이전/첫 + 시점별 추이 배열)
+  const ownerMap = {};
+  const ownerPeriodTotals = {};
+  assets.forEach(a => {
+    if (!a.owner) return;
+    if (!ownerMap[a.owner]) ownerMap[a.owner] = { latest: 0, prev: 0, first: 0 };
+    if (!ownerPeriodTotals[a.owner]) ownerPeriodTotals[a.owner] = periods.map(() => 0);
+
+    ownerMap[a.owner].latest += a.values[periods.length - 1] || 0;
+    if (periods.length >= 2) ownerMap[a.owner].prev += a.values[periods.length - 2] || 0;
+    ownerMap[a.owner].first += a.values[0] || 0;
+
+    periods.forEach((p, i) => {
+      ownerPeriodTotals[a.owner][i] += a.values[i] || 0;
+    });
+  });
+
+  // 카테고리/계정별
+  const categoryMap = {};
+  const categoryPeriodTotals = {};
+  const accountMap = {};
+  const accountPeriodTotals = {};
+  assets.forEach(a => {
+    const latest = a.values[periods.length - 1] || 0;
+    if (a.category) {
+      categoryMap[a.category] = (categoryMap[a.category] || 0) + latest;
+      if (!categoryPeriodTotals[a.category]) categoryPeriodTotals[a.category] = periods.map(() => 0);
+      periods.forEach((p, i) => {
+        categoryPeriodTotals[a.category][i] += a.values[i] || 0;
+      });
+    }
+    if (a.account) {
+      accountMap[a.account] = (accountMap[a.account] || 0) + latest;
+      if (!accountPeriodTotals[a.account]) accountPeriodTotals[a.account] = periods.map(() => 0);
+      periods.forEach((p, i) => {
+        accountPeriodTotals[a.account][i] += a.values[i] || 0;
+      });
+    }
+  });
+
+  return {
+    periods, assets, periodTotals,
+    ownerMap, ownerPeriodTotals,
+    categoryMap, categoryPeriodTotals,
+    accountMap, accountPeriodTotals,
+    totalLatest: periodTotals[periodTotals.length - 1],
+    totalPrev: periodTotals.length >= 2 ? periodTotals[periodTotals.length - 2] : 0,
+    totalFirst: periodTotals[0],
+  };
+}
+
+function parseNum(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const cleaned = v.toString().replace(/[,₩\s]/g, '').replace(/^"|"$/g, '');
+  if (cleaned === '-' || cleaned === '') return 0;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+function renderDashboard(data) {
+  currentData = data;  // 상세보기에서 사용
+  renderKPIs(data);
+  renderInsights(data);
+  renderTopAssets(data);
+  renderSearchFilter(data);
+  renderTrendChart(data);
+  renderSimulation(data);
+  renderOwners(data);
+  renderMatrix(data);
+  renderCategories(data);
+  renderGoal(data);
+}
+
+function renderKPIs(data) {
+  const latest = data.totalLatest;
+  const prev = data.totalPrev;
+  const first = data.totalFirst;
+
+  document.getElementById('kpi-latest').innerHTML =
+    formatNum(latest) + '<span class="card-value-unit">원</span>';
+  document.getElementById('kpi-latest-date').textContent =
+    data.periods[data.periods.length - 1].label;
+
+  // 최신 카드: 전 시점 대비
+  if (prev > 0) {
+    const delta = latest - prev;
+    const deltaPct = (delta / prev) * 100;
+    const sign = delta >= 0 ? '↑' : '↓';
+    const deltaEl = document.getElementById('kpi-latest-delta');
+    deltaEl.textContent = `${sign} ${formatNum(Math.abs(delta))} (${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(2)}%)`;
+    deltaEl.className = 'card-delta ' + (delta >= 0 ? 'delta-up' : 'delta-down');
+  }
+
+  // 최신 카드: 최초 시점 대비
+  if (first > 0) {
+    const cumDelta = latest - first;
+    const cumPct = (cumDelta / first) * 100;
+    const sign = cumDelta >= 0 ? '↑' : '↓';
+    const el = document.getElementById('kpi-latest-cum-delta');
+    el.textContent = `${sign} ${formatNum(Math.abs(cumDelta))} (${cumPct >= 0 ? '+' : ''}${cumPct.toFixed(2)}%)`;
+    el.className = 'card-delta ' + (cumDelta >= 0 ? 'delta-up' : 'delta-down');
+  }
+
+  // 누적 수익 카드
+  if (first > 0) {
+    const cum = latest - first;
+    const cumPct = (cum / first) * 100;
+    document.getElementById('kpi-cumulative').innerHTML =
+      (cum >= 0 ? '+' : '') + formatNum(cum) + '<span class="card-value-unit">원</span>';
+    const pctEl = document.getElementById('kpi-cumulative-pct');
+    pctEl.textContent = (cumPct >= 0 ? '+' : '') + cumPct.toFixed(2) + '%';
+    pctEl.className = 'card-delta ' + (cum >= 0 ? 'delta-up' : 'delta-down');
+  }
+
+  if (prev > 0) {
+    const momDelta = latest - prev;
+    const momPct = (momDelta / prev) * 100;
+    const sign = momDelta >= 0 ? '↑' : '↓';
+    const el = document.getElementById('kpi-mom-delta');
+    el.textContent = `${sign} ${formatNum(Math.abs(momDelta))} (${momPct >= 0 ? '+' : ''}${momPct.toFixed(2)}%)`;
+    el.className = 'card-delta ' + (momDelta >= 0 ? 'delta-up' : 'delta-down');
+  }
+
+  // 연환산 수익률
+  const annual = calcAnnualReturn(data);
+  if (annual !== null) {
+    const annualEl = document.getElementById('kpi-annual');
+    annualEl.innerHTML = (annual.pct >= 0 ? '+' : '') + annual.pct.toFixed(2) + '<span class="card-value-unit">%</span>';
+    annualEl.style.color = annual.pct >= 0 ? 'var(--profit)' : 'var(--loss)';
+    document.getElementById('kpi-annual-days').textContent = annual.days + '일';
+    document.getElementById('kpi-volatility').textContent = '시점간 σ ' + annual.volatility.toFixed(2) + '%';
+  }
+
+  // 목표
+  const goal = 5000000000;
+  const goalPct = (latest / goal) * 100;
+  document.getElementById('kpi-goal').innerHTML =
+    goalPct.toFixed(1) + '<span class="card-value-unit">%</span>';
+  document.getElementById('kpi-goal-remaining').textContent = formatNum(goal - latest) + '원';
+
+  // 도달 예상 (현재 페이스 기준)
+  const eta = calcGoalETA(data, goal);
+  if (eta) {
+    document.getElementById('kpi-goal-eta').textContent = eta.years.toFixed(1) + '년 (' + eta.targetYear + ')';
+  } else {
+    document.getElementById('kpi-goal-eta').textContent = '-';
+  }
+}
+
+// 연환산 수익률 + 변동성 계산
+function calcAnnualReturn(data) {
+  if (!data.periods || data.periods.length < 2) return null;
+  const first = data.totalFirst;
+  const last = data.totalLatest;
+  if (first <= 0) return null;
+
+  const firstLabel = data.periods[0].label;
+  const lastLabel = data.periods[data.periods.length-1].label;
+  const fm = String(firstLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const lm = String(lastLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!fm || !lm) return null;
+
+  const fd = new Date(+fm[1], +fm[2]-1, +fm[3]);
+  const ld = new Date(+lm[1], +lm[2]-1, +lm[3]);
+  const days = Math.round((ld - fd) / (1000*60*60*24));
+  if (days <= 0) return null;
+
+  // 연환산 수익률 (단리)
+  const totalReturn = (last / first) - 1;
+  const annualPct = (totalReturn * 365 / days) * 100;
+
+  // 변동성 (시점간 변화율의 표준편차)
+  const pcts = [];
+  for (let i = 1; i < data.periodTotals.length; i++) {
+    if (data.periodTotals[i-1] > 0) {
+      pcts.push((data.periodTotals[i] / data.periodTotals[i-1] - 1) * 100);
+    }
+  }
+  let volatility = 0;
+  if (pcts.length > 0) {
+    const mean = pcts.reduce((a,b) => a+b, 0) / pcts.length;
+    const variance = pcts.reduce((s, p) => s + (p - mean) ** 2, 0) / pcts.length;
+    volatility = Math.sqrt(variance);
+  }
+
+  return { pct: annualPct, days, volatility };
+}
+
+// 목표 도달 예상
+function calcGoalETA(data, goal) {
+  if (!data.periods || data.periods.length < 2) return null;
+  const first = data.totalFirst;
+  const last = data.totalLatest;
+  if (last >= goal) return { years: 0, targetYear: '달성' };
+
+  const firstLabel = data.periods[0].label;
+  const lastLabel = data.periods[data.periods.length-1].label;
+  const fm = String(firstLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const lm = String(lastLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!fm || !lm) return null;
+
+  const fd = new Date(+fm[1], +fm[2]-1, +fm[3]);
+  const ld = new Date(+lm[1], +lm[2]-1, +lm[3]);
+  const days = Math.round((ld - fd) / (1000*60*60*24));
+  if (days <= 0) return null;
+
+  const growthPerDay = (last - first) / days;
+  if (growthPerDay <= 0) return null;
+
+  const remaining = goal - last;
+  const daysToGoal = remaining / growthPerDay;
+  const years = daysToGoal / 365;
+
+  const targetDate = new Date(ld.getTime() + daysToGoal * 24*60*60*1000);
+  const targetYear = targetDate.getFullYear() + '년';
+
+  return { years, targetYear };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 자동 인사이트 카드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderInsights(data) {
+  const container = document.getElementById('insights-card');
+  const insights = generateInsights(data);
+
+  let html = '<div class="insights-title">💡 오늘의 인사이트</div>';
+  html += '<div class="insights-list">';
+  insights.forEach(ins => {
+    html += `<div class="insight-item">
+      <span class="insight-icon">${ins.icon}</span>
+      <span class="insight-text">${ins.text}</span>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function generateInsights(data) {
+  const insights = [];
+  const latest = data.totalLatest;
+  const prev = data.totalPrev;
+  const first = data.totalFirst;
+
+  // 1. 최근 변화
+  if (prev > 0 && data.periods.length >= 2) {
+    const delta = latest - prev;
+    const pct = (delta / prev) * 100;
+    const lastLabel = data.periods[data.periods.length-1].label;
+    const prevLabel = data.periods[data.periods.length-2].label;
+    const days = daysBetween(prevLabel, lastLabel);
+    const sign = delta >= 0 ? '+' : '';
+    const dayStr = days !== null ? `${days}일간 ` : '';
+    insights.push({
+      icon: delta >= 0 ? '📈' : '📉',
+      text: `최근 ${dayStr}<span class="insight-highlight">${sign}${formatShortNum(delta)}</span> (${sign}${pct.toFixed(2)}%) ${delta >= 0 ? '증가' : '감소'}`
+    });
+  }
+
+  // 2. 누적 수익
+  if (first > 0 && data.periods.length >= 2) {
+    const cum = latest - first;
+    const cumPct = (cum / first) * 100;
+    const totalDays = daysBetween(data.periods[0].label, data.periods[data.periods.length-1].label);
+    insights.push({
+      icon: '🎯',
+      text: `시작 이후 ${totalDays}일간 <span class="insight-highlight">${cum >= 0 ? '+' : ''}${formatShortNum(cum)}</span> 자산 증가 (${cumPct >= 0 ? '+' : ''}${cumPct.toFixed(2)}%)`
+    });
+  }
+
+  // 3. TOP 자산
+  const assets = data.assets || [];
+  const lastIdx = data.periods.length - 1;
+  const sortedAssets = [...assets].sort((a,b) => (b.values[lastIdx]||0) - (a.values[lastIdx]||0));
+  if (sortedAssets.length > 0) {
+    const top = sortedAssets[0];
+    const topAmount = top.values[lastIdx];
+    const topPct = (topAmount / latest * 100);
+    insights.push({
+      icon: '🏆',
+      text: `<span class="insight-highlight">${top.name || top.type}</span>이(가) 전체 자산의 <span class="insight-highlight">${topPct.toFixed(1)}%</span> 차지 (${formatShortNum(topAmount)})`
+    });
+  }
+
+  // 4. 소유자 집중도
+  const ownerEntries = Object.entries(data.ownerMap);
+  if (ownerEntries.length > 0) {
+    const sorted = ownerEntries.sort((a,b) => b[1].latest - a[1].latest);
+    const topOwner = sorted[0];
+    const topOwnerPct = (topOwner[1].latest / latest * 100);
+    if (topOwnerPct >= 80) {
+      insights.push({
+        icon: '⚠️',
+        text: `<span class="insight-highlight warning">${topOwner[0]}</span> 한 명에게 <span class="insight-highlight warning">${topOwnerPct.toFixed(1)}%</span> 집중 (분산 검토 권장)`
+      });
+    }
+  }
+
+  // 5. 50억 도달
+  const eta = calcGoalETA(data, 5000000000);
+  if (eta) {
+    insights.push({
+      icon: '🚀',
+      text: `현재 페이스로 50억까지 <span class="insight-highlight">${eta.years.toFixed(1)}년</span> 남음 (${eta.targetYear})`
+    });
+  }
+
+  // 6. 카테고리별 비중
+  const catEntries = Object.entries(data.categoryMap || {});
+  if (catEntries.length > 0) {
+    const sortedCat = catEntries.sort((a,b) => b[1] - a[1]);
+    const topCat = sortedCat[0];
+    const topCatPct = (topCat[1] / latest * 100);
+    if (topCatPct >= 40) {
+      insights.push({
+        icon: '💰',
+        text: `<span class="insight-highlight">${topCat[0]}</span>이(가) 가장 큰 자산군 (<span class="insight-highlight">${topCatPct.toFixed(1)}%</span>, ${formatShortNum(topCat[1])})`
+      });
+    }
+  }
+
+  return insights;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 자산 TOP 10
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderTopAssets(data) {
+  const container = document.getElementById('top-assets');
+  const assets = data.assets || [];
+  const lastIdx = data.periods.length - 1;
+
+  // 그룹화: 같은 이름+소유자+계정인 자산은 합산 (보통은 안 되지만 안전장치)
+  const sorted = [...assets]
+    .filter(a => (a.values[lastIdx] || 0) > 0)
+    .sort((a,b) => (b.values[lastIdx]||0) - (a.values[lastIdx]||0))
+    .slice(0, 10);
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<div class="search-empty">자산이 없습니다</div>';
+    return;
+  }
+
+  const total = data.totalLatest;
+  const maxAmount = sorted[0].values[lastIdx];
+
+  let html = '';
+  sorted.forEach((a, i) => {
+    const amount = a.values[lastIdx];
+    const pct = (amount / total * 100);
+    const barPct = (amount / maxAmount * 100);
+    const name = a.type || a.name || '-';
+    const owner = a.owner || '';
+    const cat = a.category || '';
+    const account = a.account || '';
+
+    html += `<div class="top-asset-row">
+      <div class="top-asset-rank">${i+1}</div>
+      <div class="top-asset-info">
+        <div class="top-asset-name">${escapeHtml(name)}</div>
+        <div class="top-asset-meta">
+          <span class="meta-cat">${escapeHtml(cat)}</span>
+          ${escapeHtml(owner)} · ${escapeHtml(account)}
+        </div>
+      </div>
+      <div class="top-asset-bar">
+        <div class="top-asset-bar-fill" style="width:${barPct}%"></div>
+      </div>
+      <div>
+        <div class="top-asset-amount">${formatShortNum(amount)}</div>
+        <div class="top-asset-amount-pct">${pct.toFixed(2)}%</div>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 자산 검색 / 필터
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const searchState = { keyword: '', owner: 'all', category: 'all' };
+
+function renderSearchFilter(data) {
+  // 소유자 필터 버튼
+  const ownerFilter = document.getElementById('owner-filter');
+  const owners = Object.keys(data.ownerMap);
+  let ownerHtml = '<button class="filter-btn active" data-owner="all">전체</button>';
+  owners.forEach(o => {
+    ownerHtml += `<button class="filter-btn" data-owner="${escapeHtml(o)}">${escapeHtml(o)}</button>`;
+  });
+  ownerFilter.innerHTML = ownerHtml;
+
+  // 대분류 필터 버튼
+  const catFilter = document.getElementById('category-filter');
+  const cats = Object.keys(data.categoryMap || {});
+  let catHtml = '<button class="filter-btn active" data-category="all">전체</button>';
+  cats.forEach(c => {
+    catHtml += `<button class="filter-btn" data-category="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+  });
+  catFilter.innerHTML = catHtml;
+
+  // 이벤트 바인딩
+  const input = document.getElementById('search-input');
+  input.oninput = () => {
+    searchState.keyword = input.value.trim().toLowerCase();
+    applySearch(data);
+  };
+
+  ownerFilter.onclick = (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    ownerFilter.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    searchState.owner = btn.dataset.owner;
+    applySearch(data);
+  };
+
+  catFilter.onclick = (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    catFilter.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    searchState.category = btn.dataset.category;
+    applySearch(data);
+  };
+
+  // 초기 상태 표시 (전체)
+  applySearch(data);
+}
+
+function applySearch(data) {
+  const results = document.getElementById('search-results');
+  const assets = data.assets || [];
+  const lastIdx = data.periods.length - 1;
+  const firstIdx = 0;
+
+  const filtered = assets.filter(a => {
+    const v = a.values[lastIdx] || 0;
+    if (v === 0 && (a.values[firstIdx] || 0) === 0) return false;
+
+    // 키워드 검색 (이름, 계정)
+    if (searchState.keyword) {
+      const text = ((a.type||'') + ' ' + (a.name||'') + ' ' + (a.account||'') + ' ' + (a.owner||'')).toLowerCase();
+      if (!text.includes(searchState.keyword)) return false;
+    }
+
+    // 소유자 필터
+    if (searchState.owner !== 'all' && a.owner !== searchState.owner) return false;
+
+    // 대분류 필터
+    if (searchState.category !== 'all' && a.category !== searchState.category) return false;
+
+    return true;
+  });
+
+  // 정렬: 최신 자산 큰 순
+  filtered.sort((a,b) => (b.values[lastIdx]||0) - (a.values[lastIdx]||0));
+
+  // 결과 합계
+  const totalAmount = filtered.reduce((s, a) => s + (a.values[lastIdx]||0), 0);
+
+  let html = `<div class="search-count">총 ${filtered.length}개 자산 · 합계 ${formatShortNum(totalAmount)}</div>`;
+
+  if (filtered.length === 0) {
+    html += '<div class="search-empty">검색 결과가 없습니다</div>';
+  } else {
+    filtered.forEach(a => {
+      const last = a.values[lastIdx] || 0;
+      const first = a.values[firstIdx] || 0;
+      const name = a.type || a.name || '-';
+
+      // 수익률 (시작 시점 대비)
+      let pctText = '-';
+      let pctClass = 'neutral';
+      if (first > 0) {
+        const pct = (last/first - 1) * 100;
+        pctText = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+        pctClass = pct >= 0 ? 'up' : 'down';
+      } else if (last > 0) {
+        pctText = '신규';
+        pctClass = 'up';
+      } else if (first > 0 && last === 0) {
+        pctText = '소진';
+        pctClass = 'down';
+      }
+
+      html += `<div class="search-result-item">
+        <div class="search-result-info">
+          <div class="name">${escapeHtml(name)}</div>
+          <div class="meta">${escapeHtml(a.owner||'')} · ${escapeHtml(a.account||'')} · ${escapeHtml(a.category||'')}</div>
+        </div>
+        <div class="search-result-amount">${formatShortNum(last)}</div>
+        <div class="search-result-pct ${pctClass}">${pctText}</div>
+      </div>`;
+    });
+  }
+
+  results.innerHTML = html;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 50억 목표 시뮬레이션
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let simulationChart = null;
+
+function renderSimulation(data) {
+  const ctx = document.getElementById('simulation-chart').getContext('2d');
+  if (simulationChart) simulationChart.destroy();
+
+  const goal = 5000000000;
+  const latest = data.totalLatest;
+  const first = data.totalFirst;
+
+  // 시작일과 최신일
+  const fLabel = data.periods[0].label;
+  const lLabel = data.periods[data.periods.length-1].label;
+  const fm = String(fLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const lm = String(lLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!fm || !lm) {
+    document.getElementById('simulation-stats').innerHTML = '<div class="search-empty">시뮬레이션 불가</div>';
+    return;
+  }
+
+  const fd = new Date(+fm[1], +fm[2]-1, +fm[3]);
+  const ld = new Date(+lm[1], +lm[2]-1, +lm[3]);
+  const daysPassed = Math.round((ld - fd) / (1000*60*60*24));
+
+  // 현재 페이스 (일평균 증가액)
+  const dailyGrowth = (latest - first) / daysPassed;
+
+  // 미래 N년 시뮬레이션 (최대 10년)
+  const futureYears = 10;
+  const monthsTotal = futureYears * 12;
+
+  // 라벨 (시작 ~ 미래 10년) - 6개월 간격
+  const labels = [];
+  const actualData = [];  // 실제 데이터
+  const conservativeData = [];  // 보수 (현재 페이스)
+  const balancedData = [];      // 균형 (연 7%)
+  const aggressiveData = [];    // 적극 (연 10%)
+
+  // 1) 과거 실제 시점 데이터 추가
+  data.periods.forEach((p, i) => {
+    labels.push(p.label);
+    actualData.push(data.periodTotals[i]);
+    conservativeData.push(null);
+    balancedData.push(null);
+    aggressiveData.push(null);
+  });
+
+  // 2) 마지막 시점부터 미래 시뮬레이션 (6개월 간격)
+  const baselineDate = ld;
+  const baselineAmount = latest;
+  let consAmount = baselineAmount;
+  let balAmount = baselineAmount;
+  let aggAmount = baselineAmount;
+
+  // 마지막 실제 시점을 시뮬레이션 시작점으로
+  conservativeData[conservativeData.length-1] = baselineAmount;
+  balancedData[balancedData.length-1] = baselineAmount;
+  aggressiveData[aggressiveData.length-1] = baselineAmount;
+
+  const stepDays = 90; // 90일(약 3개월) 간격
+  const totalSteps = Math.ceil(futureYears * 365 / stepDays);
+
+  let goalReachedConservative = null;
+  let goalReachedBalanced = null;
+  let goalReachedAggressive = null;
+
+  for (let step = 1; step <= totalSteps; step++) {
+    const fDate = new Date(baselineDate.getTime() + step * stepDays * 24*60*60*1000);
+    const label = `${fDate.getFullYear()}-${String(fDate.getMonth()+1).padStart(2,'0')}-${String(fDate.getDate()).padStart(2,'0')}`;
+    labels.push(label);
+    actualData.push(null);
+
+    // 보수형: 현재 페이스 유지 (선형)
+    consAmount += dailyGrowth * stepDays;
+    conservativeData.push(Math.max(0, consAmount));
+    if (!goalReachedConservative && consAmount >= goal) goalReachedConservative = label;
+
+    // 균형형: 연 7% 복리
+    balAmount *= Math.pow(1 + 0.07, stepDays/365);
+    balancedData.push(balAmount);
+    if (!goalReachedBalanced && balAmount >= goal) goalReachedBalanced = label;
+
+    // 적극형: 연 10% 복리
+    aggAmount *= Math.pow(1 + 0.10, stepDays/365);
+    aggressiveData.push(aggAmount);
+    if (!goalReachedAggressive && aggAmount >= goal) goalReachedAggressive = label;
+
+    if (consAmount >= goal && balAmount >= goal && aggAmount >= goal) break;
+  }
+
+  simulationChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '실제',
+          data: actualData,
+          borderColor: '#3B7DD8',
+          backgroundColor: 'rgba(59, 125, 216, 0.15)',
+          borderWidth: 3,
+          tension: 0,
+          pointRadius: 5,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#3B7DD8',
+          pointBorderWidth: 2,
+          fill: false,
+        },
+        {
+          label: '보수형 (현재 페이스)',
+          data: conservativeData,
+          borderColor: '#8E7CC3',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          tension: 0,
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: '균형형 (연 7%)',
+          data: balancedData,
+          borderColor: '#5BC0BE',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          tension: 0,
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: '적극형 (연 10%)',
+          data: aggressiveData,
+          borderColor: '#E8A547',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          tension: 0,
+          pointRadius: 0,
+          fill: false,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: {family:'Pretendard Variable', size:12}, padding: 12 }
+        },
+        annotation: undefined,
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          padding: 10,
+          titleFont: {family:'Pretendard Variable', weight:600},
+          bodyFont: {family:'Pretendard Variable'},
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.parsed.y === null) return null;
+              return `${ctx.dataset.label}: ${formatShortNum(ctx.parsed.y)}원`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font:{family:'Pretendard Variable'}, maxTicksLimit: 8 },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: false,
+          ticks: {
+            font:{family:'Pretendard Variable'},
+            callback: (v) => formatShortNum(v)
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+
+  // 통계 표시
+  const statsEl = document.getElementById('simulation-stats');
+  const formatETA = (label) => label ? label.substring(0, 7).replace('-', '년 ') + '월' : '10년+ 후';
+
+  statsEl.innerHTML = `
+    <div class="sim-stat">
+      <div class="sim-stat-label">보수형 (현재 페이스)</div>
+      <div class="sim-stat-value">${formatETA(goalReachedConservative)}</div>
+      <div class="sim-stat-meta">일평균 +${formatShortNum(dailyGrowth)}</div>
+    </div>
+    <div class="sim-stat">
+      <div class="sim-stat-label">균형형 (연 7% 복리)</div>
+      <div class="sim-stat-value">${formatETA(goalReachedBalanced)}</div>
+      <div class="sim-stat-meta">분산 투자 권장</div>
+    </div>
+    <div class="sim-stat">
+      <div class="sim-stat-label">적극형 (연 10% 복리)</div>
+      <div class="sim-stat-value">${formatETA(goalReachedAggressive)}</div>
+      <div class="sim-stat-meta">변동성 큼</div>
+    </div>
+  `;
+}
+
+function renderTrendChart(data) {
+  const ctx = document.getElementById('trend-chart').getContext('2d');
+  if (trendChart) trendChart.destroy();
+
+  // 각 시점에 표시할 라벨 만들기
+  const totals = data.periodTotals;
+  const labels = totals.map((v, i) => {
+    const amount = (v / 100000000).toFixed(2) + '억';
+    if (i === 0) return [amount, '시작']; // 첫 시점
+
+    const prev = totals[i - 1];
+    const momPct = prev > 0 ? ((v - prev) / prev) * 100 : 0;
+    const momStr = (momPct >= 0 ? '+' : '') + momPct.toFixed(2) + '%';
+    const days = daysBetween(data.periods[i - 1].label, data.periods[i].label);
+    const daysStr = days !== null ? `${days}일` : '';
+
+    if (i === totals.length - 1) {
+      // 최신 시점: 전대비 + 누적
+      const first = totals[0];
+      const cumPct = first > 0 ? ((v - first) / first) * 100 : 0;
+      const cumStr = (cumPct >= 0 ? '+' : '') + cumPct.toFixed(2) + '%';
+      const cumDays = daysBetween(data.periods[0].label, data.periods[i].label);
+      const cumDaysStr = cumDays !== null ? `${cumDays}일` : '';
+      return [
+        amount,
+        `${momStr} (전, ${daysStr})`,
+        `${cumStr} (누적, ${cumDaysStr})`
+      ];
+    }
+
+    return [amount, `${momStr} (${daysStr})`];
+  });
+
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.periods.map(p => p.label),
+      datasets: [{
+        label: '총자산',
+        data: totals,
+        borderColor: '#3B7DD8',
+        backgroundColor: (ctx) => {
+          const chart = ctx.chart;
+          const {ctx: c, chartArea} = chart;
+          if (!chartArea) return '#3B7DD8';
+          const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, 'rgba(59, 125, 216, 0.25)');
+          gradient.addColorStop(1, 'rgba(59, 125, 216, 0.0)');
+          return gradient;
+        },
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: '#3B7DD8',
+        pointBorderWidth: 2.5,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#3B7DD8',
+        pointHoverBorderColor: '#FFFFFF',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 60, right: 30, left: 10, bottom: 10 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#FFFFFF',
+          titleColor: '#1A1F2E',
+          bodyColor: '#4A5568',
+          borderColor: '#E8ECF0',
+          borderWidth: 1,
+          padding: 12,
+          titleFont: { family: "'Pretendard Variable'", size: 12, weight: '600' },
+          bodyFont: { family: "'Geist Mono'", size: 13, weight: '600' },
+          displayColors: false,
+          callbacks: {
+            label: (ctx) => '  ' + formatNum(ctx.parsed.y) + '원'
+          }
+        },
+        datalabels: {
+          display: true,
+          align: 'top',
+          anchor: 'end',
+          offset: 8,
+          formatter: (value, ctx) => labels[ctx.dataIndex],
+          font: { family: "'Pretendard Variable'", size: 11, weight: '600' },
+          color: (ctx) => {
+            const i = ctx.dataIndex;
+            if (i === 0) return '#7A8694';
+            const prev = totals[i - 1];
+            const momPct = prev > 0 ? ((totals[i] - prev) / prev) * 100 : 0;
+            return momPct >= 0 ? '#2563EB' : '#DC4444';
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderColor: 'rgba(232, 236, 240, 0.8)',
+          borderWidth: 1,
+          borderRadius: 6,
+          padding: { top: 4, bottom: 4, left: 8, right: 8 },
+          textAlign: 'center',
+          lineHeight: 1.4,
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#F4F6F8', drawBorder: false },
+          ticks: { color: '#7A8694', font: { family: "'Pretendard Variable'", size: 11, weight: '500' } }
+        },
+        y: {
+          grid: { color: '#F4F6F8', drawBorder: false },
+          ticks: {
+            color: '#7A8694',
+            font: { family: "'Geist Mono'", size: 11, weight: '500' },
+            callback: (v) => (v / 100000000).toFixed(1) + '억'
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// 소유자별 차트 인스턴스 보관
+const ownerCharts = {};
+let categoryChart = null;
+let accountChart = null;
+// 위 두 변수는 이전 버전 호환용 (현재는 catCharts에서 관리)
+
+function renderOwners(data) {
+  const container = document.getElementById('owner-charts');
+  container.innerHTML = '';
+  const total = data.totalLatest;
+
+  // 기존 차트 destroy
+  Object.values(ownerCharts).forEach(c => c && c.destroy());
+  Object.keys(ownerCharts).forEach(k => delete ownerCharts[k]);
+
+  Object.entries(data.ownerMap)
+    .sort((a, b) => b[1].latest - a[1].latest)
+    .forEach(([name, vals], idx) => {
+      const share = (vals.latest / total) * 100;
+      const periodValues = data.ownerPeriodTotals[name] || [];
+      const cumDelta = vals.latest - vals.first;
+      const cumPct = vals.first > 0 ? (cumDelta / vals.first) * 100 : 0;
+      const momDelta = vals.latest - vals.prev;
+      const momPct = vals.prev > 0 ? (momDelta / vals.prev) * 100 : 0;
+
+      const card = document.createElement('div');
+      card.className = 'owner-chart-card';
+      const canvasId = 'owner-chart-' + idx;
+      card.innerHTML = `
+        <div class="owner-chart-header">
+          <div class="owner-chart-name">${name}</div>
+          <div class="owner-chart-pct ${cumPct >= 0 ? 'delta-up' : 'delta-down'}">
+            <span class="pct-tiny-label">누적</span>
+            <span class="pct-value">${cumPct >= 0 ? '+' : ''}${cumPct.toFixed(2)}%</span>
+          </div>
+        </div>
+        <div class="owner-chart-share">최신 자산 ${formatNum(vals.latest)}원 · 비중 ${share.toFixed(1)}%</div>
+        <div class="owner-chart-canvas"><canvas id="${canvasId}"></canvas></div>
+        <div class="owner-chart-stats four-cols">
+          <div>
+            <span class="label">전 시점 대비</span>
+            <span class="value" style="color: ${momPct >= 0 ? 'var(--profit)' : 'var(--loss)'}">
+              ${momPct >= 0 ? '+' : ''}${formatShortNum(momDelta)}
+            </span>
+            <span class="value sub" style="color: ${momPct >= 0 ? 'var(--profit)' : 'var(--loss)'}">
+              ${momPct >= 0 ? '+' : ''}${momPct.toFixed(2)}%
+            </span>
+          </div>
+          <div>
+            <span class="label">최초 시점 대비</span>
+            <span class="value" style="color: ${cumPct >= 0 ? 'var(--profit)' : 'var(--loss)'}">
+              ${cumPct >= 0 ? '+' : ''}${formatShortNum(cumDelta)}
+            </span>
+            <span class="value sub" style="color: ${cumPct >= 0 ? 'var(--profit)' : 'var(--loss)'}">
+              ${cumPct >= 0 ? '+' : ''}${cumPct.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+
+      // 차트 그리기 (해당 소유자의 시점별 추이)
+      setTimeout(() => {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        ownerCharts[name] = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.periods.map(p => p.label),
+            datasets: [{
+              data: periodValues,
+              borderColor: '#3B7DD8',
+              backgroundColor: (ctx) => {
+                const chart = ctx.chart;
+                const {ctx: c, chartArea} = chart;
+                if (!chartArea) return '#3B7DD8';
+                const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, 'rgba(59, 125, 216, 0.2)');
+                gradient.addColorStop(1, 'rgba(59, 125, 216, 0.0)');
+                return gradient;
+              },
+              borderWidth: 2,
+              fill: true,
+              tension: 0.35,
+              pointBackgroundColor: '#FFFFFF',
+              pointBorderColor: '#3B7DD8',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 50, right: 30, left: 30, bottom: 5 } },
+            clip: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#FFFFFF',
+                titleColor: '#1A1F2E',
+                bodyColor: '#4A5568',
+                borderColor: '#E8ECF0',
+                borderWidth: 1,
+                padding: 10,
+                titleFont: { family: "'Pretendard Variable'", size: 11, weight: '600' },
+                bodyFont: { family: "'Geist Mono'", size: 12, weight: '600' },
+                displayColors: false,
+                callbacks: {
+                  label: (ctx) => '  ' + formatNum(ctx.parsed.y) + '원'
+                }
+              },
+              datalabels: {
+                display: true,
+                clip: false,
+                clamp: true,
+                align: (ctx) => {
+                  const i = ctx.dataIndex;
+                  const total = ctx.dataset.data.length;
+                  if (i === 0) return 'right';        // 첫 점은 오른쪽 위로
+                  if (i === total - 1) return 'left'; // 마지막 점은 왼쪽 위로
+                  return 'top';
+                },
+                anchor: 'end',
+                offset: 8,
+                formatter: (value, ctx) => {
+                  const i = ctx.dataIndex;
+                  const amount = formatShortNum(value);
+                  if (i === 0) return amount;
+                  const prev = periodValues[i - 1];
+                  const pct = prev > 0 ? ((value - prev) / prev) * 100 : 0;
+                  const days = daysBetween(data.periods[i-1].label, data.periods[i].label);
+                  const daysStr = days !== null ? ` (${days}일)` : '';
+                  if (i === periodValues.length - 1) {
+                    const first = periodValues[0];
+                    const cum = first > 0 ? ((value - first) / first) * 100 : 0;
+                    const cumDays = daysBetween(data.periods[0].label, data.periods[i].label);
+                    const cumDaysStr = cumDays !== null ? ` (${cumDays}일)` : '';
+                    return [
+                      amount,
+                      (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' + daysStr,
+                      '누적 ' + (cum >= 0 ? '+' : '') + cum.toFixed(1) + '%' + cumDaysStr
+                    ];
+                  }
+                  return [amount, (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' + daysStr];
+                },
+                font: { family: "'Pretendard Variable'", size: 9, weight: '600' },
+                color: (ctx) => {
+                  const i = ctx.dataIndex;
+                  if (i === 0) return '#7A8694';
+                  const prev = periodValues[i - 1];
+                  const pct = prev > 0 ? ((periodValues[i] - prev) / prev) * 100 : 0;
+                  return pct >= 0 ? '#2563EB' : '#DC4444';
+                },
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: 'rgba(232, 236, 240, 0.8)',
+                borderWidth: 1,
+                borderRadius: 4,
+                padding: { top: 2, bottom: 2, left: 5, right: 5 },
+                textAlign: 'center',
+                lineHeight: 1.3,
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false, drawBorder: false },
+                ticks: { color: '#A0AAB8', font: { family: "'Pretendard Variable'", size: 9, weight: '500' } }
+              },
+              y: {
+                grid: { color: '#F4F6F8', drawBorder: false },
+                ticks: {
+                  color: '#A0AAB8',
+                  font: { family: "'Geist Mono'", size: 9, weight: '500' },
+                  callback: (v) => formatShortNum(v)
+                }
+              }
+            }
+          },
+          plugins: [ChartDataLabels]
+        });
+      }, 100);
+    });
+}
+
+// 카테고리/계정 차트 인스턴스
+const catCharts = {};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 소유자 × 대분류/계정 매트릭스 렌더링
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderMatrix(data) {
+  const lastIdx = data.periods.length - 1;
+  const assets = data.assets || [];
+
+  // 소유자 목록 (자산 큰 순)
+  const owners = Object.entries(data.ownerMap)
+    .sort((a, b) => b[1].latest - a[1].latest)
+    .map(([name]) => name);
+
+  // 대분류 매트릭스 렌더
+  renderMatrixTable('matrix-cat', '대분류', '카테고리', assets, owners,
+    a => a.category, lastIdx);
+
+  // 계정 매트릭스 렌더
+  renderMatrixTable('matrix-acc', '계정', '계정', assets, owners,
+    a => a.account, lastIdx);
+
+  // 탭 전환 이벤트 (중복 등록 방지 위해 새로 바인딩)
+  document.querySelectorAll('.matrix-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.matrix-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.matrix-section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('matrix-' + tab.dataset.target).classList.add('active');
+    };
+  });
+}
+
+function renderMatrixTable(containerId, label, colHeader, assets, owners, keyFn, lastIdx) {
+  const container = document.getElementById(containerId);
+
+  // 그룹 키 (대분류 또는 계정) 추출 및 정렬 (최신 합계 큰 순)
+  const groupSums = {};
+  assets.forEach(a => {
+    const key = keyFn(a);
+    if (!key) return;
+    if (!groupSums[key]) groupSums[key] = 0;
+    groupSums[key] += a.values[lastIdx] || 0;
+  });
+  const groups = Object.entries(groupSums)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k]) => k);
+
+  // 매트릭스 데이터: matrix[group][owner] = 합계 금액
+  const matrix = {};
+  const ownerTotals = {};
+  const groupTotals = {};
+  let grandTotal = 0;
+
+  groups.forEach(g => {
+    matrix[g] = {};
+    owners.forEach(o => { matrix[g][o] = 0; });
+    groupTotals[g] = 0;
+  });
+  owners.forEach(o => { ownerTotals[o] = 0; });
+
+  assets.forEach(a => {
+    const k = keyFn(a);
+    if (!k || !a.owner || !matrix[k]) return;
+    if (!matrix[k].hasOwnProperty(a.owner)) return;
+    const v = a.values[lastIdx] || 0;
+    matrix[k][a.owner] += v;
+    ownerTotals[a.owner] += v;
+    groupTotals[k] += v;
+    grandTotal += v;
+  });
+
+  // 테이블 생성
+  let html = '<table class="matrix-table"><thead><tr>';
+  html += `<th>${colHeader}</th>`;
+  owners.forEach(o => { html += `<th>${o}</th>`; });
+  html += `<th>합계</th></tr></thead><tbody>`;
+
+  groups.forEach(g => {
+    html += '<tr>';
+    html += `<td>${g}</td>`;
+
+    owners.forEach(o => {
+      const amount = matrix[g][o];
+      const ownerTotal = ownerTotals[o];
+      const pctInOwner = ownerTotal > 0 ? (amount / ownerTotal * 100) : 0;
+
+      // 셀 강도: 해당 소유자 자산 중 차지 비중에 따라 배경색
+      let cellClass = 'amount';
+      if (amount === 0) {
+        cellClass += ' zero';
+      } else if (pctInOwner >= 50) {
+        cellClass += ' cell-strong';
+      } else if (pctInOwner >= 20) {
+        cellClass += ' cell-medium';
+      }
+
+      html += `<td class="${cellClass}">`;
+      if (amount > 0) {
+        html += `<span class="cell-amount">${formatShortNum(amount)}</span>`;
+        html += `<span class="cell-pct">${pctInOwner.toFixed(1)}%</span>`;
+      } else {
+        html += `-`;
+      }
+      html += '</td>';
+    });
+
+    // 그룹 합계
+    const gPctTotal = grandTotal > 0 ? (groupTotals[g] / grandTotal * 100) : 0;
+    html += `<td class="amount">
+      <span class="cell-amount">${formatShortNum(groupTotals[g])}</span>
+      <span class="cell-pct">${gPctTotal.toFixed(1)}%</span>
+    </td>`;
+    html += '</tr>';
+  });
+
+  // 푸터 (합계)
+  html += '</tbody><tfoot><tr>';
+  html += '<td>합계</td>';
+  owners.forEach(o => {
+    const total = ownerTotals[o];
+    const pct = grandTotal > 0 ? (total / grandTotal * 100) : 0;
+    html += `<td class="amount">
+      <span class="cell-amount">${formatShortNum(total)}</span>
+      <span class="cell-pct">${pct.toFixed(1)}%</span>
+    </td>`;
+  });
+  html += `<td class="amount">
+    <span class="cell-amount">${formatShortNum(grandTotal)}</span>
+    <span class="cell-pct">100%</span>
+  </td>`;
+  html += '</tr></tfoot></table>';
+
+  container.innerHTML = html;
+}
+
+function renderCategories(data) {
+  // 기존 차트 destroy
+  Object.values(catCharts).forEach(c => c && c.destroy());
+  Object.keys(catCharts).forEach(k => delete catCharts[k]);
+
+  renderCategorySection('대분류', 'category', data.categoryPeriodTotals, data.periods, data.totalLatest);
+  renderCategorySection('계정', 'account', data.accountPeriodTotals, data.periods, data.totalLatest);
+}
+
+function renderCategorySection(title, prefix, periodTotalsMap, periods, grandTotal) {
+  const lastIdx = periods.length - 1;
+
+  // 정렬: 최신 시점 큰 순
+  const sorted = Object.entries(periodTotalsMap)
+    .filter(([_, arr]) => arr[lastIdx] > 0)
+    .sort((a, b) => b[1][lastIdx] - a[1][lastIdx]);
+
+  // 평균 수익률 계산
+  // 누적 평균: (마지막값 합 - 첫값 합) / 첫값 합 (가중평균이 더 의미있음)
+  const sumFirst = sorted.reduce((s, [, v]) => s + (v[0] || 0), 0);
+  const sumLast = sorted.reduce((s, [, v]) => s + (v[lastIdx] || 0), 0);
+  const avgCumPct = sumFirst > 0 ? ((sumLast - sumFirst) / sumFirst) * 100 : 0;
+  const totalCumDelta = sumLast - sumFirst;
+
+  // 시점간 평균 수익률 (전체 합계 기준)
+  const periodSums = periods.map((_, i) => sorted.reduce((s, [, v]) => s + (v[i] || 0), 0));
+  const momPcts = [];
+  for (let i = 1; i < periodSums.length; i++) {
+    if (periodSums[i-1] > 0) {
+      momPcts.push(((periodSums[i] - periodSums[i-1]) / periodSums[i-1]) * 100);
+    }
+  }
+  const avgMomPct = momPcts.length > 0 ? momPcts.reduce((a, b) => a + b, 0) / momPcts.length : 0;
+
+  // 요약 카드 채우기
+  const summary = document.getElementById(`${prefix}-summary-card`);
+  summary.innerHTML = `
+    <div>
+      <span class="label">전체 항목</span>
+      <span class="value">${sorted.length}개</span>
+    </div>
+    <div>
+      <span class="label">최신 시점 합계</span>
+      <span class="value">${formatNum(sumLast)}원</span>
+    </div>
+    <div>
+      <span class="label">시점간 평균 수익률</span>
+      <span class="value ${avgMomPct >= 0 ? 'profit' : 'loss'}">${avgMomPct >= 0 ? '+' : ''}${avgMomPct.toFixed(2)}%</span>
+    </div>
+    <div>
+      <span class="label">누적 평균 수익률</span>
+      <span class="value ${avgCumPct >= 0 ? 'profit' : 'loss'}">${avgCumPct >= 0 ? '+' : ''}${avgCumPct.toFixed(2)}%</span>
+    </div>
+  `;
+
+  // 시점별 수익률 행 추가 (시점간 변화율을 시점별로 나열)
+  const periodPctsRow = document.getElementById(`${prefix}-period-pcts`);
+  if (periodPctsRow) {
+    if (periods.length < 2) {
+      periodPctsRow.innerHTML = '';
+    } else {
+      let html = '<div class="period-pcts-label">시점별 평균 수익률</div><div class="period-pcts-flow">';
+      // 첫 시점은 기준점
+      html += `
+        <div class="period-pct-node">
+          <span class="period-pct-label">${periods[0].label}</span>
+          <span class="period-pct-amount">${formatShortNum(periodSums[0])}</span>
+          <span class="period-pct-tag start">시작</span>
+        </div>
+      `;
+      // 시점간 화살표 + % + 다음 노드
+      for (let i = 1; i < periods.length; i++) {
+        const prev = periodSums[i - 1];
+        const curr = periodSums[i];
+        const pct = prev > 0 ? ((curr - prev) / prev) * 100 : null;
+        const cls = pct === null ? 'neutral' : (pct >= 0 ? 'profit' : 'loss');
+        const arrow = pct === null ? '→' : (pct >= 0 ? '↗' : '↘');
+        const pctStr = pct === null ? '-' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+
+        html += `
+          <div class="period-pct-arrow ${cls}">
+            <span class="arrow-icon">${arrow}</span>
+            <span class="arrow-pct">${pctStr}</span>
+          </div>
+          <div class="period-pct-node">
+            <span class="period-pct-label">${periods[i].label}</span>
+            <span class="period-pct-amount">${formatShortNum(curr)}</span>
+          </div>
+        `;
+      }
+      html += '</div>';
+      periodPctsRow.innerHTML = html;
+    }
+  }
+
+  // 카드 그리드 채우기
+  const container = document.getElementById(`${prefix}-cards`);
+  container.innerHTML = '';
+
+  // 색상 팔레트 (밝은 톤, 적녹색약 친화)
+  const colors = [
+    '#3B7DD8', '#E8A547', '#5BC0BE', '#8E7CC3',
+    '#5B9BE8', '#F4A261', '#7AB8B5', '#B8917F',
+    '#D89BC4', '#A8B5D8'
+  ];
+
+  sorted.forEach(([name, values], idx) => {
+    const first = values[0];
+    const last = values[lastIdx];
+    const prev = lastIdx >= 1 ? values[lastIdx - 1] : 0;
+    const share = grandTotal > 0 ? (last / grandTotal) * 100 : 0;
+
+    const cumDelta = last - first;
+    const cumPct = first > 0 ? (cumDelta / first) * 100 : null;
+    const momDelta = last - prev;
+    const momPct = prev > 0 ? (momDelta / prev) * 100 : null;
+
+    const color = colors[idx % colors.length];
+
+    const card = document.createElement('div');
+    // 대분류 카드만 클릭해서 상세보기 가능
+    const isClickable = prefix === 'category';
+    card.className = 'cat-card' + (isClickable ? ' clickable' : '');
+    if (isClickable) {
+      card.addEventListener('click', () => openCategoryDetail(name, values, color));
+    }
+    const canvasId = `${prefix}-mini-${idx}`;
+
+    // 시점간 평균 수익률 계산 (해당 항목)
+    const itemMomPcts = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i-1] > 0) {
+        itemMomPcts.push(((values[i] - values[i-1]) / values[i-1]) * 100);
+      }
+    }
+    const avgItemMom = itemMomPcts.length > 0 ? itemMomPcts.reduce((a,b) => a+b, 0) / itemMomPcts.length : null;
+    const cumAmount = last - first; // 최초→최신 누적 증감액
+
+    // 평균 수익률 표시
+    const avgValueHTML = avgItemMom === null
+      ? `<span class="value neutral">-</span>`
+      : `<span class="value ${avgItemMom >= 0 ? 'profit' : 'loss'}">${avgItemMom >= 0 ? '+' : ''}${avgItemMom.toFixed(2)}%</span>`;
+
+    // 누적 수익률 + 액
+    let cumStatHTML;
+    if (cumPct === null) {
+      cumStatHTML = `<span class="value neutral">신규 항목</span><span class="value sub neutral">${formatShortNum(last)}</span>`;
+    } else {
+      const cls = cumPct >= 0 ? 'profit' : 'loss';
+      const sign = cumPct >= 0 ? '+' : '';
+      const amountSign = cumAmount >= 0 ? '+' : '';
+      cumStatHTML = `
+        <span class="value ${cls}">${sign}${cumPct.toFixed(2)}%</span>
+        <span class="value sub ${cls}">${amountSign}${formatShortNum(cumAmount)}</span>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="cat-card-header">
+        <div class="cat-card-name">${name}</div>
+        <div class="cat-card-share">${share.toFixed(1)}%</div>
+      </div>
+      <div class="cat-card-amount">${formatNum(last)}원</div>
+      <div class="cat-card-canvas"><canvas id="${canvasId}"></canvas></div>
+      <div class="cat-card-stats">
+        <div>
+          <span class="label">시점간 평균 수익률</span>
+          ${avgValueHTML}
+        </div>
+        <div>
+          <span class="label">최초→최신 누적</span>
+          ${cumStatHTML}
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    // 미니 차트
+    setTimeout(() => {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      catCharts[`${prefix}-${idx}`] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: periods.map(p => p.label),
+          datasets: [{
+            data: values,
+            borderColor: color,
+            backgroundColor: (ctx) => {
+              const chart = ctx.chart;
+              const {ctx: c, chartArea} = chart;
+              if (!chartArea) return color;
+              const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+              const rgb = hexToRgb(color);
+              gradient.addColorStop(0, `rgba(${rgb}, 0.2)`);
+              gradient.addColorStop(1, `rgba(${rgb}, 0.0)`);
+              return gradient;
+            },
+            borderWidth: 2,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#FFFFFF',
+            pointBorderColor: color,
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 50, right: 30, left: 30, bottom: 25 } },
+          clip: false,
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              clip: false,
+              clamp: true,
+              align: (ctx) => {
+                const i = ctx.dataIndex;
+                const total = ctx.dataset.data.length;
+                if (i === 0) return 'right';
+                if (i === total - 1) return 'left';
+                return 'top';
+              },
+              anchor: 'end',
+              offset: 8,
+              formatter: (value, ctx) => {
+                const i = ctx.dataIndex;
+                const amount = formatShortNum(value);
+                if (i === 0) return amount;
+                const prev = values[i - 1];
+                const pct = prev > 0 ? ((value - prev) / prev) * 100 : null;
+                const delta = value - prev;
+                const days = daysBetween(periods[i-1].label, periods[i].label);
+                const daysStr = days !== null ? ` (${days}일)` : '';
+                if (pct === null) return [amount, formatShortNum(delta) + daysStr];
+                const pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' + daysStr;
+                const deltaStr = (delta >= 0 ? '+' : '') + formatShortNum(delta);
+                return [amount, pctStr, deltaStr];
+              },
+              font: { family: "'Pretendard Variable'", size: 9, weight: '600' },
+              color: (ctx) => {
+                const i = ctx.dataIndex;
+                if (i === 0) return '#7A8694';
+                const prev = values[i - 1];
+                const pct = prev > 0 ? ((values[i] - prev) / prev) * 100 : 0;
+                return pct >= 0 ? '#2563EB' : '#DC4444';
+              },
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderColor: 'rgba(232, 236, 240, 0.8)',
+              borderWidth: 1,
+              borderRadius: 4,
+              padding: { top: 2, bottom: 2, left: 5, right: 5 },
+              textAlign: 'center',
+              lineHeight: 1.3,
+            },
+            tooltip: {
+              backgroundColor: '#FFFFFF',
+              titleColor: '#1A1F2E',
+              bodyColor: '#4A5568',
+              borderColor: '#E8ECF0',
+              borderWidth: 1,
+              padding: 8,
+              titleFont: { family: "'Pretendard Variable'", size: 11, weight: '600' },
+              bodyFont: { family: "'Geist Mono'", size: 11, weight: '600' },
+              displayColors: false,
+              callbacks: {
+                label: (ctx) => '  ' + formatNum(ctx.parsed.y) + '원'
+              }
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              grid: { display: false, drawBorder: false },
+              ticks: { color: '#A0AAB8', font: { family: "'Pretendard Variable'", size: 9, weight: '500' } }
+            },
+            y: { display: false }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }, 50);
+  });
+}
+
+// hex → rgb 변환
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0,0,0';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 대분류 상세보기 모달
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openCategoryDetail(categoryName, periodValues, color) {
+  if (!currentData) return;
+
+  const periods = currentData.periods;
+  const lastIdx = periods.length - 1;
+  const first = periodValues[0];
+  const last = periodValues[lastIdx];
+  const prev = lastIdx >= 1 ? periodValues[lastIdx - 1] : 0;
+
+  // 해당 카테고리에 속한 자산만 필터링
+  const items = (currentData.assets || []).filter(a => a.category === categoryName);
+
+  // === 헤더 정보 ===
+  document.getElementById('modal-eyebrow').textContent = '대분류 상세';
+  document.getElementById('modal-title').textContent = categoryName;
+  document.getElementById('modal-subtitle').textContent =
+    `${items.length}개 항목 · 최신 시점 ${formatNum(last)}원`;
+
+  // === 요약 카드 ===
+  const cumDelta = last - first;
+  const cumPct = first > 0 ? (cumDelta / first) * 100 : null;
+  const momDelta = last - prev;
+  const momPct = prev > 0 ? (momDelta / prev) * 100 : null;
+  const totalCost = items.reduce((s, a) => s + (a.cost || 0), 0);
+  const profitLoss = totalCost > 0 ? last - totalCost : null;
+  const profitPct = totalCost > 0 ? ((last - totalCost) / totalCost) * 100 : null;
+
+  const summary = document.getElementById('modal-summary');
+  summary.innerHTML = `
+    <div>
+      <span class="label">최신 시점</span>
+      <span class="value">${formatNum(last)}원</span>
+    </div>
+    <div>
+      <span class="label">전 시점 대비</span>
+      <span class="value ${momPct !== null ? (momPct >= 0 ? 'profit' : 'loss') : ''}">
+        ${momPct === null ? '-' : (momPct >= 0 ? '+' : '') + momPct.toFixed(2) + '%'}
+      </span>
+    </div>
+    <div>
+      <span class="label">누적 수익률</span>
+      <span class="value ${cumPct !== null ? (cumPct >= 0 ? 'profit' : 'loss') : ''}">
+        ${cumPct === null ? '-' : (cumPct >= 0 ? '+' : '') + cumPct.toFixed(2) + '%'}
+      </span>
+    </div>
+    <div>
+      <span class="label">${totalCost > 0 ? '원금 대비 수익률' : '원금 미입력'}</span>
+      <span class="value ${profitPct !== null ? (profitPct >= 0 ? 'profit' : 'loss') : ''}">
+        ${profitPct === null ? '-' : (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%'}
+      </span>
+    </div>
+  `;
+
+  // === 차트 (시점별 추이, 라벨 포함) ===
+  if (modalChart) modalChart.destroy();
+
+  // 라벨 만들기
+  const chartLabels = periodValues.map((v, i) => {
+    const amount = formatShortNum(v);
+    if (i === 0) return [amount, '시작'];
+    const prevV = periodValues[i - 1];
+    const pct = prevV > 0 ? ((v - prevV) / prevV) * 100 : 0;
+    const days = daysBetween(periods[i-1].label, periods[i].label);
+    const daysStr = days !== null ? ` (${days}일)` : '';
+    const pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' + daysStr;
+    if (i === lastIdx) {
+      const cumP = first > 0 ? ((v - first) / first) * 100 : 0;
+      const cumDays = daysBetween(periods[0].label, periods[i].label);
+      const cumDaysStr = cumDays !== null ? ` (${cumDays}일)` : '';
+      const cumStr = (cumP >= 0 ? '+' : '') + cumP.toFixed(1) + '%' + cumDaysStr;
+      return [amount, pctStr.replace(daysStr, ' (전' + daysStr + ')'), '누적 ' + cumStr];
+    }
+    return [amount, pctStr];
+  });
+
+  const ctx = document.getElementById('modal-chart').getContext('2d');
+  modalChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: periods.map(p => p.label),
+      datasets: [{
+        data: periodValues,
+        borderColor: color,
+        backgroundColor: (ctx) => {
+          const chart = ctx.chart;
+          const {ctx: c, chartArea} = chart;
+          if (!chartArea) return color;
+          const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          const rgb = hexToRgb(color);
+          gradient.addColorStop(0, `rgba(${rgb}, 0.25)`);
+          gradient.addColorStop(1, `rgba(${rgb}, 0.0)`);
+          return gradient;
+        },
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: color,
+        pointBorderWidth: 2.5,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 50, right: 20, left: 10, bottom: 10 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#FFFFFF',
+          titleColor: '#1A1F2E',
+          bodyColor: '#4A5568',
+          borderColor: '#E8ECF0',
+          borderWidth: 1,
+          padding: 10,
+          titleFont: { family: "'Pretendard Variable'", size: 12, weight: '600' },
+          bodyFont: { family: "'Geist Mono'", size: 13, weight: '600' },
+          displayColors: false,
+          callbacks: {
+            label: (ctx) => '  ' + formatNum(ctx.parsed.y) + '원'
+          }
+        },
+        datalabels: {
+          display: true,
+          align: 'top',
+          anchor: 'end',
+          offset: 6,
+          formatter: (value, ctx) => chartLabels[ctx.dataIndex],
+          font: { family: "'Pretendard Variable'", size: 10, weight: '600' },
+          color: (ctx) => {
+            const i = ctx.dataIndex;
+            if (i === 0) return '#7A8694';
+            const prevV = periodValues[i - 1];
+            const pct = prevV > 0 ? ((periodValues[i] - prevV) / prevV) * 100 : 0;
+            return pct >= 0 ? '#2563EB' : '#DC4444';
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderColor: 'rgba(232, 236, 240, 0.8)',
+          borderWidth: 1,
+          borderRadius: 5,
+          padding: { top: 3, bottom: 3, left: 6, right: 6 },
+          textAlign: 'center',
+          lineHeight: 1.3,
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#F4F6F8', drawBorder: false },
+          ticks: { color: '#7A8694', font: { family: "'Pretendard Variable'", size: 11, weight: '500' } }
+        },
+        y: {
+          grid: { color: '#F4F6F8', drawBorder: false },
+          ticks: {
+            color: '#7A8694',
+            font: { family: "'Geist Mono'", size: 11, weight: '500' },
+            callback: (v) => formatShortNum(v)
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  // === 항목 테이블 ===
+  document.getElementById('modal-items-title').innerHTML =
+    `📋 포함 항목 <span style="color: var(--text-muted); font-weight: 500; font-size: 12px;">(${items.length}개)</span>`;
+
+  const table = document.getElementById('modal-items-table');
+  if (items.length === 0) {
+    table.innerHTML = `<tbody><tr><td style="text-align:center; color: var(--text-muted); padding: 24px;">데이터 없음</td></tr></tbody>`;
+  } else {
+    // 정렬: 최신 시점 큰 순
+    items.sort((a, b) => (b.values[lastIdx] || 0) - (a.values[lastIdx] || 0));
+
+    let html = '<thead><tr>';
+    html += '<th>종목</th>';
+    html += '<th>소유자</th>';
+    html += '<th>계정</th>';
+    periods.forEach(p => {
+      html += `<th class="right">${p.label}</th>`;
+    });
+    html += '<th class="right">누적 %</th>';
+    html += '</tr></thead><tbody>';
+
+    items.forEach(a => {
+      const aFirst = a.values[0] || 0;
+      const aLast = a.values[lastIdx] || 0;
+      const aPct = aFirst > 0 ? ((aLast - aFirst) / aFirst) * 100 : null;
+
+      html += '<tr>';
+      html += `<td><strong>${a.type || '-'}</strong></td>`;
+      html += `<td>${a.owner || '-'}</td>`;
+      html += `<td>${a.account || '-'}</td>`;
+      a.values.forEach(v => {
+        html += `<td class="right">${v ? formatNum(v) : '-'}</td>`;
+      });
+      const cls = aPct === null ? 'neutral' : (aPct >= 0 ? 'profit' : 'loss');
+      const txt = aPct === null
+        ? (aLast > 0 ? '신규' : '-')
+        : (aPct >= 0 ? '+' : '') + aPct.toFixed(2) + '%';
+      html += `<td class="right ${cls}">${txt}</td>`;
+      html += '</tr>';
+    });
+
+    // 합계 행
+    html += '<tr style="background: var(--bg-subtle); font-weight: 700;">';
+    html += '<td colspan="3" style="font-weight: 700; color: var(--text);">합계</td>';
+    periods.forEach((_, i) => {
+      const sum = items.reduce((s, a) => s + (a.values[i] || 0), 0);
+      html += `<td class="right" style="font-weight: 700; color: var(--text);">${formatNum(sum)}</td>`;
+    });
+    const sumFirst = items.reduce((s, a) => s + (a.values[0] || 0), 0);
+    const sumLast = items.reduce((s, a) => s + (a.values[lastIdx] || 0), 0);
+    const sumPct = sumFirst > 0 ? ((sumLast - sumFirst) / sumFirst) * 100 : 0;
+    const sumCls = sumPct >= 0 ? 'profit' : 'loss';
+    html += `<td class="right ${sumCls}" style="font-weight: 700;">${sumPct >= 0 ? '+' : ''}${sumPct.toFixed(2)}%</td>`;
+    html += '</tr>';
+
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+
+  // 모달 표시
+  document.getElementById('detail-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+}
+
+function closeDetail(event) {
+  if (event && event.target.id !== 'detail-modal' && event.type === 'click') return;
+  document.getElementById('detail-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (modalChart) { modalChart.destroy(); modalChart = null; }
+}
+
+// ESC로 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('detail-modal').style.display === 'flex') {
+    closeDetail();
+  }
+});
+
+// 짧은 금액 포맷 (억/만원 단위)
+function formatShortNum(n) {
+  const abs = Math.abs(n);
+  if (abs >= 100000000) return (n / 100000000).toFixed(1) + '억';
+  if (abs >= 10000000) return (n / 10000000).toFixed(1) + '천만';
+  if (abs >= 10000) return Math.round(n / 10000) + '만';
+  return Math.round(n).toLocaleString('ko-KR');
+}
+
+// 두 날짜 라벨 사이 일수 계산 (예: "2025-06-01" → "2026-02-13" = 257일)
+// 파싱 실패시 빈 문자열 반환
+function daysBetween(fromLabel, toLabel) {
+  try {
+    // YYYY-MM-DD 형식만 처리
+    const fromMatch = String(fromLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    const toMatch = String(toLabel).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!fromMatch || !toMatch) return null;
+    const from = new Date(+fromMatch[1], +fromMatch[2] - 1, +fromMatch[3]);
+    const to = new Date(+toMatch[1], +toMatch[2] - 1, +toMatch[3]);
+    const diff = Math.round((to - from) / (1000 * 60 * 60 * 24));
+    return diff;
+  } catch (e) {
+    return null;
+  }
+}
+
+function renderGoal(data) {
+  const goal = 5000000000;
+  const current = data.totalLatest;
+  const remaining = goal - current;
+  const pct = (current / goal) * 100;
+
+  document.getElementById('goal-pct-display').innerHTML =
+    pct.toFixed(1) + '<span style="font-size: 0.5em; color: var(--text-dim);">%</span>';
+  document.getElementById('goal-current').textContent = formatNum(current) + '원';
+  document.getElementById('goal-remaining').textContent = formatNum(remaining) + '원';
+
+  setTimeout(() => {
+    document.getElementById('goal-bar-fill').style.width = Math.min(pct, 100) + '%';
+  }, 200);
+}
+
+function formatNum(n) {
+  return Math.round(n).toLocaleString('ko-KR');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 샘플 데이터 (실제 데이터 형태 미리보기용)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadDemoData() {
+  const demoData = {
+    periods: [
+      { label: '2025-06-01', colIdx: 6, periodIdx: 0 },
+      { label: '2026-02-13', colIdx: 7, periodIdx: 1 },
+      { label: '2026-04-17', colIdx: 10, periodIdx: 2 },
+      { label: '2026-05-06', colIdx: 13, periodIdx: 3 },
+    ],
+    periodTotals: [2401902757, 2545296593, 2649112213, 2808376917],
+    ownerMap: {
+      '남인호': { latest: 2709805603, prev: 2568015899, first: 2328499004 },
+      '남세아': { latest: 50435817, prev: 40650817, first: 36732249 },
+      '남수아': { latest: 48135497, prev: 40445497, first: 36671504 },
+    },
+    ownerPeriodTotals: {
+      '남인호': [2328499004, 2474290244, 2568015899, 2709805603],
+      '남세아': [36732249, 35600989, 40650817, 50435817],
+      '남수아': [36671504, 35405360, 40445497, 48135497],
+    },
+    categoryMap: {
+      '현금성자산': 1293844440,
+      '예적금': 35503375,
+      '외화자산': 122257,
+      '투자자산': 90040315,
+      '주식': 858866530,
+      '전세보증금': 530000000,
+    },
+    categoryPeriodTotals: {
+      '현금성자산': [6015740, -4093731, 9023070, 1293844440],
+      '예적금': [1050515007, 1053725324, 1318132979, 35503375],
+      '외화자산': [0, 120004, 122157, 122257],
+      '투자자산': [75106425, 82831611, 86900557, 90040315],
+      '주식': [270265585, 412713385, 704933450, 858866530],
+      '전세보증금': [1000000000, 1000000000, 530000000, 530000000],
+    },
+    accountMap: {
+      '국민은행': 1306032784,
+      '삼성증권': 859318117,
+      '전세보증금': 530000000,
+      '미래에셋': 90040315,
+      '우리은행': 17445207,
+      '하나은행': 4961226,
+      '한투증권': 268949,
+      '그린카드': 222381,
+      '카카오뱅크': 74003,
+      '토스증권': 13935,
+    },
+    accountPeriodTotals: {
+      '국민은행': [998445182, 1026233339, 1303714684, 1306032784],
+      '삼성증권': [270316585, 413155845, 705382699, 859318117],
+      '전세보증금': [1000000000, 1000000000, 530000000, 530000000],
+      '미래에셋': [75106425, 82831611, 86900557, 90040315],
+      '우리은행': [17394138, 17441500, 17444207, 17445207],
+      '하나은행': [40196950, 4957913, 4961126, 4961226],
+      '한투증권': [429573, 280289, 271049, 268949],
+      '그린카드': [0, 170160, 210010, 222381],
+      '카카오뱅크': [0, 212032, 213977, 74003],
+      '토스증권': [13904, 13904, 13904, 13935],
+    },
+    assets: [
+      {owner:"남인호", account:"국민은행", type:"급여통장", category:"현금성자산", cost:0, values:[5521263, -5000544, 8078858, 1292887588]},
+      {owner:"남인호", account:"국민은행", type:"청약이자", category:"예적금", cost:0, values:[2923919, 3145196, 3145196, 3145196]},
+      {owner:"남인호", account:"국민은행", type:"월 예금", category:"예적금", cost:0, values:[980000000, 1018088687, 1282490630, 0]},
+      {owner:"남인호", account:"국민은행", type:"청약통장", category:"예적금", cost:0, values:[10000000, 10000000, 10000000, 10000000]},
+      {owner:"남인호", account:"하나은행", type:"예금", category:"예적금", cost:0, values:[185152, 65842, 65874, 65874]},
+      {owner:"남인호", account:"하나은행", type:"예금", category:"예적금", cost:0, values:[0, 7254, 7255, 7255]},
+      {owner:"남인호", account:"하나은행", type:"외화", category:"외화자산", cost:0, values:[0, 120004, 122157, 122257]},
+      {owner:"남인호", account:"우리은행", type:"예금", category:"예적금", cost:0, values:[1016078, 1016524, 1015747, 1016747]},
+      {owner:"남인호", account:"카카오뱅크", type:"예금", category:"예적금", cost:0, values:[0, 212032, 213977, 74003]},
+      {owner:"남인호", account:"그린카드", type:"포인트", category:"현금성자산", cost:0, values:[0, 170160, 210010, 222381]},
+      {owner:"남인호", account:"미래에셋", type:"펀드", category:"투자자산", cost:0, values:[75106425, 82831611, 86900557, 90040315]},
+      {owner:"남인호", account:"삼성증권", type:"삼성전자", category:"주식", cost:0, values:[12342000, 36822000, 169303000, 237671500]},
+      {owner:"남인호", account:"삼성증권", type:"BGF", category:"주식", cost:0, values:[4033740, 3972120, 4735260, 0]},
+      {owner:"남인호", account:"삼성증권", type:"삼성생명", category:"주식", cost:0, values:[89714400, 143376000, 176436000, 211236000]},
+      {owner:"남인호", account:"삼성증권", type:"셀트리온", category:"주식", cost:0, values:[61132700, 92984000, 81755000, 0]},
+      {owner:"남인호", account:"삼성증권", type:"BGF 에코머터리얼즈", category:"주식", cost:0, values:[67650, 84810, 94270, 0]},
+      {owner:"남인호", account:"삼성증권", type:"BGF 리테일", category:"주식", cost:0, values:[61580200, 70131600, 67601600, 65678800]},
+      {owner:"남인호", account:"삼성증권", type:"카카오게임즈", category:"주식", cost:0, values:[24064000, 15564800, 12779520, 11898880]},
+      {owner:"남인호", account:"삼성증권", type:"카카오페이", category:"주식", cost:0, values:[368000, 246000, 226800, 0]},
+      {owner:"남인호", account:"삼성증권", type:"SK 하이닉스", category:"주식", cost:0, values:[0, 0, 129162000, 255440000]},
+      {owner:"남인호", account:"삼성증권", type:"S&P 500", category:"주식", cost:0, values:[0, 0, 3371550, 0]},
+      {owner:"남인호", account:"삼성증권", type:"예수금", category:"현금성자산", cost:0, values:[0, 157955, 15685, 15923]},
+      {owner:"남인호", account:"토스증권", type:"예수금", category:"현금성자산", cost:0, values:[13904, 13904, 13904, 13935]},
+      {owner:"남인호", account:"한투증권", type:"카카오뱅크", category:"주식", cost:0, values:[148000, 111200, 101400, 100000]},
+      {owner:"남인호", account:"한투증권", type:"한화생명", category:"주식", cost:0, values:[3395, 4955, 4900, 5250]},
+      {owner:"남인호", account:"한투증권", type:"카카오뱅크", category:"주식", cost:0, values:[111000, 83400, 76050, 75000]},
+      {owner:"남인호", account:"한투증권", type:"예수금", category:"현금성자산", cost:0, values:[167178, 80734, 88699, 88699]},
+      {owner:"남인호", account:"전세보증금", type:"서초", category:"전세보증금", cost:0, values:[1000000000, 1000000000, 0, 0]},
+      {owner:"남인호", account:"전세보증금", type:"일산", category:"전세보증금", cost:0, values:[0, 0, 530000000, 530000000]},
+      {owner:"남세아", account:"삼성증권", type:"삼성전자", category:"주식", cost:0, values:[8288500, 24673700, 29660500, 39469500]},
+      {owner:"남세아", account:"삼성증권", type:"카카오페이", category:"주식", cost:0, values:[92000, 62200, 56800, 32800]},
+      {owner:"남세아", account:"삼성증권", type:"예수금", category:"현금성자산", cost:0, values:[156845, 242492, 308658, 308658]},
+      {owner:"남수아", account:"삼성증권", type:"삼성전자", category:"주식", cost:0, values:[8228000, 24534400, 29512000, 37196000]},
+      {owner:"남수아", account:"삼성증권", type:"카카오페이", category:"주식", cost:0, values:[92000, 62200, 56800, 62800]},
+      {owner:"남수아", account:"삼성증권", type:"예수금", category:"현금성자산", cost:0, values:[156550, 241568, 307256, 307256]},
+      {owner:"남세아", account:"우리은행", type:"예금", category:"예적금", cost:0, values:[8189005, 8192488, 8194230, 8194230]},
+      {owner:"남세아", account:"우리은행", type:"청약통장", category:"예적금", cost:0, values:[0, 20000, 20000, 20000]},
+      {owner:"남수아", account:"우리은행", type:"예금", category:"예적금", cost:0, values:[8189055, 8192488, 8194230, 8194230]},
+      {owner:"남수아", account:"우리은행", type:"청약통장", category:"예적금", cost:0, values:[0, 20000, 20000, 20000]},
+      {owner:"남세아", account:"하나은행", type:"예금", category:"예적금", cost:0, values:[20005899, 2410109, 2410629, 2410629]},
+      {owner:"남수아", account:"하나은행", type:"예금", category:"예적금", cost:0, values:[20005899, 2354704, 2355211, 2355211]},
+    ],
+    totalLatest: 2808376917,
+    totalPrev: 2649112213,
+    totalFirst: 2401902757,
+  };
+
+  renderDashboard(demoData);
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('config-panel').style.display = 'none';
+  document.getElementById('last-updated').textContent = '샘플 데이터';
+  setStatus('미리보기 모드', 'loading');
+
+  // 미리보기 모드 안내 배너
+  if (!document.getElementById('demo-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'demo-banner';
+    banner.style.cssText = `
+      background: linear-gradient(135deg, #FFF8E6 0%, #FFEFD5 100%);
+      border: 1px solid #F4C77B;
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #8B5E1A;
+      font-weight: 500;
+    `;
+    banner.innerHTML = `
+      <span>✨ <strong>샘플 데이터 미리보기</strong> — 실제 구글시트 연결 전 화면 확인용</span>
+      <button onclick="exitDemoMode()"
+              style="background: #fff; border: 1px solid #F4C77B; color: #8B5E1A;
+                     padding: 6px 14px; border-radius: 6px; font-size: 12px;
+                     font-weight: 600; cursor: pointer;
+                     font-family: 'Pretendard Variable', sans-serif;">
+        🔌 구글시트 연결하기
+      </button>
+    `;
+    document.getElementById('main-content').prepend(banner);
+  }
+}
+
+function exitDemoMode() {
+  const banner = document.getElementById('demo-banner');
+  if (banner) banner.remove();
+  document.getElementById('main-content').style.display = 'none';
+  showConfig();
+  showEmptyState();
+}
+</script>
+</body>
+</html>
